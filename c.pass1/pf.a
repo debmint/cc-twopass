@@ -1,0 +1,153 @@
+
+* The following is a substitution for some of the floating-point
+* routines from the coco library.  I'm hoping we can simply use
+* the standard clib stuff for the cross compiler.
+
+ psect flt_a,0,0,0,0,0
+to_flacc:     pshs   u 
+              leau   _flacc,y 
+              ldd    0,x 
+              std    0,u 
+              ldd    2,x 
+              std    2,u 
+              ldd    4,x 
+              std    4,u 
+              ldd    6,x 
+              std    6,u 
+              tfr    u,x 
+              puls   u,pc 
+_dneg:        bsr    to_flacc 
+              lda    0,x 
+              eora   #$80 
+              sta    0,x 
+              rts     
+L697c:        bsr    L6981 
+              ldd    2,x 
+              rts     
+L6981:        lda    0,x 
+              pshs   a 
+              bsr    to_flacc 
+              bsr    L6993 
+              leax   3,x 
+              lda    ,s+ 
+              bpl    L6992 
+              lbra   _lnegx 
+L6992         rts     
+L6993         lda    7,x 
+              blt    L69c1 
+              pshs   x 
+              leax   7,x 
+              pshs   a,x 
+              bra    L69b9 
+L699f         ldx    1,s 
+              ldb    #6 
+              pshs   b 
+              clra    
+L69a6         pshs   a 
+              lda    #$0a 
+              ldb    ,-x 
+              mul     
+              addb   ,s+ 
+              adca   #0 
+              stb    0,x 
+              dec    0,s 
+              bpl    L69a6 
+              leas   1,s 
+L69b9         dec    0,s 
+              bge    L699f 
+              leas   3,s 
+              puls   x,pc 
+L69c1         pshs   a,x,u 
+              leau   7,x 
+              pshs   u 
+L69c7         cmpx   0,s 
+              bcc    L69fb 
+              lda    ,x+ 
+              beq    L69c7 
+              leax   -1,x 
+              pshs   x 
+              clrb    
+              asl    0,x 
+              rolb    
+              asl    0,x 
+              rolb    
+              asl    0,x 
+              rolb    
+              lda    #5 
+L69df         asl    0,x 
+              rolb    
+              cmpb   #$0a 
+              bcs    L69ea 
+              subb   #$0a 
+              inc    0,x 
+L69ea         deca    
+              bne    L69df 
+              lda    #8 
+              leax   1,x 
+              cmpx   2,s 
+              bcs    L69df 
+              puls   x 
+              inc    2,s 
+              bne    L69c7 
+L69fb         leas   3,s 
+              puls   x,u,pc 
+_dmove:       pshs   u 
+              ldu    4,s 
+              exg    x,u 
+              ldd    0,u 
+              std    0,x 
+              ldd    2,u 
+              std    2,x 
+              ldd    4,u 
+              std    4,x 
+              ldd    6,u 
+              std    6,x 
+              puls   u 
+              puls   d 
+              std    0,s 
+              rts     
+L6a1c:        leax   _flacc,y 
+              std    -2,s 
+              bpl    L6a37 
+              nega    
+              negb    
+              sbca   #0 
+              std    5,x 
+              lda    #$80 
+L6a2c         sta    0,x 
+              clra    
+              clrb    
+              std    1,x 
+              std    3,x 
+              sta    7,x 
+              rts     
+L6a37         std    5,x 
+              clra    
+              bra    L6a2c 
+L6a3c:        pshs   u 
+              leau   _flacc,y 
+              clra    
+              clrb    
+              std    0,u 
+              std    2,u 
+              ldd    0,x 
+              pshs   d 
+              std    3,u 
+              ldd    2,x 
+              std    5,u 
+              clr    7,u 
+              ldd    ,s++ 
+              bpl    L6a6c 
+              lda    #$80 
+              sta    0,u 
+              ldd    #0 
+              subd   5,u 
+              std    5,u 
+              ldd    #0 
+              sbcb   4,u 
+              sbca   3,u 
+              std    3,u 
+L6a6c         tfr    u,x 
+              puls   u,pc 
+ endsect
+

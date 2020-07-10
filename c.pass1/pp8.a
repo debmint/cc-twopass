@@ -1,0 +1,85 @@
+* ******************************************************** *
+* Code in this area comes from the atof library            *
+* It begins with label "L0178" in the disassembed lib code *
+* We may be able to substitute the true atof lib for this  *
+* ******************************************************** */
+
+
+ psect atf_a,0,0,0,0,0
+L549c: ldx 2,s 
+ leas -8,s 
+ ldd 5,x 
+ lslb 
+ rola 
+ std 5,x 
+ std 5,s 
+ ldd 3,x 
+ rolb 
+ rola 
+ std 3,x 
+ std 3,s 
+ ldd 1,x 
+ rolb 
+ rola 
+ std 1,x 
+ std 1,s 
+ lda ,x 
+ rola 
+ sta ,x 
+ sta ,s 
+ asl 6,x 
+ rol 5,x 
+ rol 4,x 
+ rol 3,x 
+ rol 2,x 
+ rol 1,x 
+ rol ,x 
+ bcs L5525 
+ asl 6,x 
+ rol 5,x 
+ rol 4,x 
+ rol 3,x 
+ rol 2,x 
+ rol 1,x 
+ rol ,x 
+ bcs L5525 
+ ldd 5,x 
+ addd 5,s 
+ std 5,x 
+ ldd 3,x 
+ adcb 4,s 
+ adca 3,s 
+ std 3,x 
+ ldd 1,x 
+ adcb 2,s 
+ adca 1,s 
+ std 1,x 
+ ldb ,x 
+ adcb ,s 
+ stb ,x 
+ bcs L5525 
+ ldb 13,s 
+ andb #$0f 
+ clra 
+ addd 5,x 
+ std 5,x 
+ ldd #0 
+ adcb 4,x 
+ adca 3,x 
+ std 3,x 
+ ldd #0 
+ adcb 2,x 
+ adca 1,x 
+ std 1,x 
+ lda #0 
+ adca ,x 
+ sta ,x 
+ bcs L5525 
+ leas 8,s 
+ clra 
+ clrb 
+ rts 
+L5525 ldd #1 
+ leas 8,s 
+ rts 
+ ends

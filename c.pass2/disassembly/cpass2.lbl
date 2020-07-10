@@ -1,0 +1,174 @@
+InPath equ $03 D
+OutPath equ $05 D
+NoStkChk equ $11 D
+DoProfile equ $13 D
+LJust equ $1d D
+FillChar equ $1f D
+DestFlg equ $21 D
+dpsiz equ $27 D
+TenMults equ $43 D
+atoftbl equ $59 D
+stdin equ $c1 D
+stdout equ $ce D
+stderr equ $db D
+
+anon_chc equ $0191 D
+_chcodes equ $0192 D
+
+argv equ $0212 D
+argc equ $024e D
+_sttop equ $0250 D
+memend equ $0252 D
+_flacc equ $0254 D
+_mtop equ $025c D
+_stbot equ $025e D
+errno equ $0260 D
+SrcFilNam equ $0262 D
+InFileName equ $0284 D
+end equ $02e7 D
+datasiz equ $0d67 D
+
+entry equ $0d L
+movbytes equ $0015 L
+_cstart equ $001e L
+csta05 equ $0024 L
+csta10 equ $0029 L
+csta15 equ $003f L
+clrbss equ $004a L
+reldt equ $0053 L
+reldd equ $0060 L
+restack equ $0069 L
+aloop equ $0085 L
+aloop10 equ $008d L
+aloop20 equ $0099 L
+aloop30 equ $009d L
+aloop40 equ $00a5 L
+qloop equ $00ad L
+aloop50 equ $00b7 L
+aloop60 equ $00c3 L
+aloop70 equ $00cd L
+loopend equ $00dd L
+final equ $00e1 L
+_fixtop equ $00fb L
+_stkcheck equ $0110 L
+stk10 equ $0122 L
+fixserr equ $0123 L
+fsterr equ $013c L
+erexit equ $0141 L
+stacksiz equ $0151 L
+freemem equ $015a L
+patch equ $0163 L
+patch10 equ $016b L
+
+* p2_01.c
+
+main equ $017d L
+openoutpth equ $09db L
+err_exit equ $0adf L
+psh_stk equ $0ac2 L
+is_regvar equ $1eb3 L
+
+* printf.c
+
+printf equ $2d3f L
+fprintf equ $2d54 L
+_dec2str equ $2f08 L
+todigit equ $2f52 L
+_hex2str equ $2fc9 L
+outputfl equ $3028 L
+sendchar equ $30e3 L
+
+* p2_06.c
+
+getmem equ $310f L
+add512mem equ $31bb L
+get_regname equ $3987 L
+br_rel_op equ $4332 L
+prt_bgnfld equ $43b8 L
+prnt_chr equ $43e7 L
+prnt_strng equ $43f6 L
+prnt_integer equ $4407 L
+prt_loclbl equ $441f L
+prt_lblnam equ $4432 L
+prt_rsrvstk equ $443f L
+prt_label equ $4471 L
+lea_reg equ $448e L
+lea_llblpcr equ $44a5 L
+
+* p2_07.c
+outofmemory equ $4834 L
+lng2_flacc equ $48e8 L
+
+ncpystr equ $4b10 L
+prt_fdb equ $4b88 L
+prt_funcbegin equ $4b96 L
+prtstkreq equ $4c1a L
+prtvsctbgn equ $4c3e L
+prtendsect equ $4c54 L
+
+* library functions
+
+fopen equ $4f06 L
+fread equ $4f58 L
+fseek equ $4f9e L
+ftell equ $50f5 L
+putc equ $515e L
+_tidyup equ $5226 L
+fclose equ $524f L
+fflush equ $5289 L
+getc equ $5375 L
+getw equ $53d7 L
+_setbase equ $54c9 L
+scale equ $55a2 L
+strlen equ $55ee L
+strcpy equ $55ff L
+strcat equ $5617 L
+_dnorm equ $5675 L
+_dneg equ $5690 L
+_dtol equ $56b9 L
+_dmul equ $56a9 L
+_ddiv equ $56b1 L
+_dtof equ $56f2 L
+
+_fstack equ $5d3a L
+_dstack equ $5d51 L
+_fmove equ $5d68 L
+_dmove equ $5d78 L
+_ladd equ $5d95 L
+_lsub equ $5daa L
+_lcmpr equ $5dbf L
+_lneg equ $5de3 L
+_lmove equ $5e23 L
+_litol equ $5e0a L
+_lmove equ $5e23 L
+_lshl equ $5e39 L
+_lbexit equ $5e71 L
+_ltoacc equ $5e80 L
+ccmult equ $5e8f L
+ccmod equ $5ef0 L
+ccudiv equ $5f2a L
+ccdiv equ $5f43 L
+ccasr equ $5fad L
+cclsr equ $5fb9 L
+ccasl equ $5fd0 L
+_rpterr equ $5fdc L
+getstat equ $5feb L
+
+open equ $605a L
+close equ $6069 L
+creat equ $607b L
+unlink equ $60c1 L
+read equ $60d6 L
+readln equ $60f7 L
+writeln equ $6120 L
+lseek equ $6130 L
+write equ $6107 L
+_os9err equ $621b L
+sbrk equ $6197 L
+ibrk equ $61ee L
+_sysret equ $6224 L
+exit equ $6229 L
+_exit equ $622f L
+etext equ $6235 L
+
+progsiz equ $6444 L
