@@ -13,11 +13,18 @@ OBJS = p2_01.r p2_02.r p2_03.r p2_04.r \
 RELS = $(RDIR)/p2_01.r $(RDIR)/p2_02.r $(RDIR)/p2_03.r $(RDIR)/p2_04.r \
 	   $(RDIR)/printf.r $(RDIR)/p2_06.r $(RDIR)/p2_07.r $(RDIR)/p2_08.r
 
-$(PROG): $(RELS)
+STKS = $(RDIR)/p2_01.r $(RDIR)/p2_02.r $(RDIR)/p2_03.r $(RDIR)/p2_04.r
+	   
+NOSTK = $(RDIR)/printf.r $(RDIR)/p2_06.r $(RDIR)/p2_07.r $(RDIR)/p2_08.r
+
+$(PROG): $(STKS) $(NOSTK)
 	cd $(RDIR);$(CC) $(LFLAGS) $(OBJS) -f=$(PROG); cd $(SRCDIR)
 
-$(RELS):
-	$(CC) $(CFLAGS) $*.c -r=$(RDIR)
+$(STKS):
+	$(CC) $(CFLAGS) $(*F).c -r=$(RDIR)
+
+$(NOSTK):
+	$(CC) $(CFLAGS) $(*F).c -s -r=$(RDIR)
 
 proto:
 	cproto -f1 -DCOCO *.c >protoc.h
