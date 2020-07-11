@@ -44,7 +44,7 @@ int p1;
 
     while ((is_math ()) && (p1 <= LblVal))    /* L0679 */
     {
-        _vrtyp = D005f;        /* L059b */
+        _vrtyp = sym;        /* L059b */
         v0 = cp_d61 = LblVal;    /* fix a = b = c ?????? */
         v4 = D003f;
         _strng = D0063;
@@ -74,7 +74,7 @@ int p1;
 
             if (_vrtyp == C_QUESTION)       /* else L064d */
             {
-                if (lookfor (C_COLON))     /* else L0642 */
+                if (need (C_COLON))     /* else L0642 */
                 {
                     L0393 (regval);     /* L0642 */
                     goto L068c;     /* Wouldn't "break" work? */
@@ -94,7 +94,7 @@ int p1;
                     {
                         reprterr ("third expression missing");  /* L0637 */
 
-                        /* Same procedure as above if lookfor (C_COLON)
+                        /* Same procedure as above if need (C_COLON)
                          * is true
                          */
 
@@ -130,30 +130,30 @@ L0694 ()
 
     register CMDREF *regval = 0;
 
-    switch (D005f)      /* L07fc */
+    switch (sym)      /* L07fc */
     {
         case C_DQUOT:
         case C_USRLBL:
         case C_LONG:
         case C_DOUBLE:
         case C_INTSQUOT:    /* L06a6 */
-            regval = add_cmdref (D005f, 0, 0, LblVal, D003f, D0063);
+            regval = add_cmdref (sym, 0, 0, LblVal, D003f, D0063);
             nxt_word ();
             break;
 
         case C_LPAREN:     /* L06cb */  /* '-' */
             nxt_word ();
 
-            if (isvariable ())
+            if (istype ())
             {
                 regval = L0d47 ();
-                lookfor (C_RPAREN);
+                need (C_RPAREN);
 
                 /* Recurse into self */
 
                 if (!(regval->cr_Left = L0694()))       /* else break */
                 {
-                    mak_curnt (regval);
+                    release (regval);
                     regval = 0;
                 }
 
@@ -168,7 +168,7 @@ L070a:
                                         D003f, D0063);
             }
 
-            lookfor (C_RPAREN);
+            need (C_RPAREN);
 
             break;
 
@@ -179,7 +179,7 @@ L070a:
         case C_MINMINUS:
         case C_PLUSPLUS:
         case C_AMPERSAND:
-            v8 = D005f;
+            v8 = sym;
             v6 = D003f;
             v4 = D0063;
             nxt_word ();
@@ -200,11 +200,11 @@ L070a:
             v4 = D0063;
             nxt_word ();
 
-            if (D005f == C_LPAREN)        /* else L07c3 */
+            if (sym == C_LPAREN)        /* else L07c3 */
             {
                 nxt_word ();
 
-                if (isvariable ())          /* else L07a5 */
+                if (istype ())          /* else L07a5 */
                 {
                     v10 = L0d47 ();    /* go to L07b7 */
                 }
@@ -216,7 +216,7 @@ L070a:
                     }
                 }
 
-                lookfor (C_RPAREN);     /* L07b7 */
+                need (C_RPAREN);     /* L07b7 */
             }
             else
             {
@@ -237,14 +237,14 @@ L070a:
 
     for (;;)
     {
-        switch (D005f)      /* L098f */
+        switch (sym)      /* L098f */
         {
             case C_LPAREN:     /* L086e */  /* '-' */
                 v4 = D0063;
                 v6 = D003f;
                 nxt_word ();
                 regval = add_cmdref (101, regval, L09f4 (), 15, v6, v4);
-                lookfor (C_RPAREN);
+                need (C_RPAREN);
 
                 continue;
 
@@ -259,13 +259,13 @@ L070a:
 
                 regval = add_cmdref (C_PLUS, regval, v10, 12, D003f, D0063);
                 regval = add_cmdref (C_ASTERISK , regval, 0, 15, D003f, D0063);
-                lookfor (C_RBRACE);
+                need (C_RBRACE);
 
                 continue;
 
             case C_PERIOD:     /* L091f */
             case C_PTRREF:     /* L091f */
-                v8 = D005f;
+                v8 = sym;
                 v6 = D003f;
                 v4 = D0063;
                 
@@ -275,14 +275,14 @@ L070a:
 
                 /* if not label... ?? */
 
-                if (D005f != C_USRLBL)
+                if (sym != C_USRLBL)
                 {
                     noidentf ();           /* go to L09ab */
                     break;
                 }
                 else
                 {
-                    v10 = add_cmdref (D005f, 0, 0, LblVal, D003f, D0063);
+                    v10 = add_cmdref (sym, 0, 0, LblVal, D003f, D0063);
                     regval = add_cmdref (v8, regval, v10, 15, v6, v4);
                     nxt_word ();
                     continue;
@@ -294,15 +294,15 @@ L070a:
     }
 
     /* L09ab */
-    switch (D005f)
+    switch (sym)
     {
         case C_PLUSPLUS:   /* L09af */ /* 0x3c */
-            D005f = C_INCREMENT;
+            sym = C_INCREMENT;
             goto L09bf;
         case C_MINMINUS:   /* L09b8 */ /* 0x3d */
-            D005f = C_DECREMENT;
+            sym = C_DECREMENT;
 L09bf:
-            regval = add_cmdref (D005f, regval,0, 14, D003f, D0063);
+            regval = add_cmdref (sym, regval,0, 14, D003f, D0063);
             nxt_word ();
 
             break;
@@ -328,7 +328,7 @@ L09f4 ()
     /*for (;;)*/
     while (1)
     {
-        if (D005f == C_RPAREN)      /* else L0a4b */
+        if (sym == C_RPAREN)      /* else L0a4b */
         {
             break;
         }
@@ -339,7 +339,7 @@ L09f4 ()
             regint = var0;
         }
 
-        if (D005f != C_COMMA)
+        if (sym != C_COMMA)
         {
             break;
         }
@@ -392,18 +392,18 @@ int
 is_math ()
 #endif
 {
-    switch (D005f)
+    switch (sym)
     {
         case C_AMPERSAND:  /* L0aa7 */
-            D005f = C_AND;
+            sym = C_AND;
             LblVal = 8;
             return 1;
         case C_ASTERISK:   /* L0ab1 */
-            D005f = C_MULT;
+            sym = C_MULT;
             LblVal = 13;
             return 1;
         case C_MINUS:      /* L0abb */
-            D005f = C_NEG;
+            sym = C_NEG;
             LblVal = 12;
             /*return 1;*//* Fall through to next case */
         case C_COMMA:      /* L0ac5 */
@@ -413,15 +413,15 @@ is_math ()
         case C_COLON:      /* retrn0 */
             return 0;
         default:           /* L0aca */
-         /*   if ((D005f < C_ANDAND) || (D005f > C_GT))
+         /*   if ((sym < C_ANDAND) || (sym > C_GT))
             {
-                if ((D005f < C_PLUSEQ) || (D005f > C_EOREQ))
+                if ((sym < C_PLUSEQ) || (sym > C_EOREQ))
                 {
                     return 0;
                 }
             }*/
-            if (((D005f >= C_ANDAND) && (D005f <= C_GT)) ||
-                    (D005f >= C_PLUSEQ) && (D005f <= C_EOREQ))
+            if (((sym >= C_ANDAND) && (sym <= C_GT)) ||
+                    (sym >= C_PLUSEQ) && (sym <= C_EOREQ))
             {
                 return 1;
             }

@@ -9,27 +9,25 @@
 
 #include "pass1.h"
 #include <stdlib.h>
-
-/* The following is a substitution for some of the floating-point
- * routines from the coco library.  I'm hoping we can simply use
- * the standard clib stuff for the cross compiler.
- */
-
-#ifndef COCO
+#include <signal.h>
+#ifdef unix
+#   include <unistd.h>
+#endif
 
 int
+#ifndef COCO
 main (int argc, char **argv)
 #else
-
-int 
 main (argc, argv)
-int argc;
-char **argv;
+    int argc;
+    char **argv;
 #endif
 {
     /* Initialization routines */
 
-#ifndef __linux
+#ifdef __linux
+    signal(2, (__sighandler_t)quitcc);
+#else
     intercept (quitcc);
 #endif
     mktemp (cstrtmp);
@@ -90,7 +88,7 @@ L6b64:
                 ++D0072;
                 if (!(inpth = freopen (*argv, "r", stdin)))
                 {
-                    err_quit ("can't open input file");
+                    fatal ("can't open input file");
                 }
 
                 srcfile = *argv;      /* L6b98 */
@@ -101,7 +99,7 @@ L6b64:
     initbuf0 ();
     nxt_word ();
 
-    while (D005f != -1)
+    while (sym != -1)
     {
         L3227 ();
     }
@@ -110,7 +108,7 @@ L6b64:
 
     if (ferror(outpth))
     {
-        err_quit ("error writing assembly code file");
+        fatal ("error writing assembly code file");
     }
 
     fflush (stdout);
@@ -122,19 +120,12 @@ L6b64:
     }
 }
 
-#ifndef COCO
-
 void 
-quit_cc (void)
-#else
-
-void
 quit_cc()
-#endif
 {
     if (srcfile)
     {
-        unlink (srcfile);
+        unlink(srcfile);
     }
 
     exit (1);

@@ -53,9 +53,9 @@ L0f18 (curntcmd)
                 L0393 (_cmdRight->cr_Left);
             }
 
-            mak_curnt (_cmdRight);
-            mak_curnt (_cmdLeft);
-            mak_curnt (curntcmd);
+            release (_cmdRight);
+            release (_cmdLeft);
+            release (curntcmd);
         }
         else
         {            /* L0fb4 */
@@ -71,8 +71,8 @@ L0f18 (curntcmd)
             _cLeft_cRight = _cmdLeft->cr_Left;      /* L0fd8 */
             _cLeft_cRight->ft_Ty = curntcmd->ft_Ty;
             _cLeft_cRight->__cr2 = curntcmd->__cr2;
-            mak_curnt (curntcmd);
-            mak_curnt (_cmdLeft);
+            release (curntcmd);
+            release (_cmdLeft);
         }
         curntcmd = _cLeft_cRight;      /* L0ff4 */
     }
@@ -105,7 +105,7 @@ L1005 (regptr)
     _prevCMD = regptr->cr_Left;      /* L101a */
     _cmdcr_Right = regptr->cr_Right;
     
-    if (L049b (_curvartyp = regptr->vartyp) ||
+    if (isbin (_curvartyp = regptr->vartyp) ||
                         (_curvartyp == C_ANDAND) || (_curvartyp == C_OROR))
     {                                       /* else L1258 */
         if ((_prevvartyp = (_prevCMD->vartyp == C_INTSQUOT)) &
@@ -158,8 +158,8 @@ L1005 (regptr)
                         (_prevCMD->cr_Left)->cr_Nxt += _cmdcr_Right->cmdval;
 L10f7:
                         v8 = _prevCMD;
-                        mak_curnt (regptr);
-                        mak_curnt (_cmdcr_Right);
+                        release (regptr);
+                        release (_cmdcr_Right);
                         regptr = v8;
                         return regptr;
                     case C_PLUS:        /* L1112 */
@@ -188,7 +188,7 @@ L10f7:
                         regptr->vartyp = C_MINUS;
                         regptr->cr_Left = _cmdcr_Right;
                         regptr->cr_Right = 0;
-                        mak_curnt (_prevCMD);
+                        release (_prevCMD);
                     }
                 }
 
@@ -238,8 +238,8 @@ L11fe:
                     regptr->vartyp = C_INTSQUOT;    /* _96 or _122 */
                     regptr->cmdval = 0;   /* L1207 (storing some value here) */
                     regptr->cr_Left = regptr->cr_Right = (CMDREF *)0;
-                    mak_curnt (_prevCMD);
-                    mak_curnt (_cmdcr_Right);
+                    release (_prevCMD);
+                    release (_cmdcr_Right);
                 }
 
                 break;
@@ -272,8 +272,8 @@ L1269:
 #endif
                 /* bra L1207 */
                 regptr->cr_Left = regptr->cr_Right = (CMDREF *)0;
-                mak_curnt (_prevCMD);
-                mak_curnt (_cmdcr_Right);
+                release (_prevCMD);
+                release (_cmdcr_Right);
                 /*return regptr;*/
                 /*break;*/  /* Don't need if following else works */
             }
@@ -303,7 +303,7 @@ L1269:
                 /* The following would work after the outer block,
                  * but trying to match code
                  */
-            mak_curnt (regptr);      /* L12fc */
+            release (regptr);      /* L12fc */
             regptr = _prevCMD;
             }
             else
@@ -316,7 +316,7 @@ L1269:
                     {
                         *dptr = -(*dptr);
                     }
-            mak_curnt (regptr);      /* L12fc */
+            release (regptr);      /* L12fc */
             regptr = _prevCMD;
                 }
             }
@@ -392,7 +392,7 @@ CMDREF *oldref;
             
             if (v16->cmdval == FT_TYPEDEF)    /* else L13e6 */
             {
-                err_lin (oldref, "typedef - not a variable");
+                terror (oldref, "typedef - not a variable");
                 L25e6 (oldref);
                 break;
             }
@@ -421,11 +421,11 @@ CMDREF *oldref;
                 if (inbraces (_t_ft_Ty))       /* else L1494 */
                 {
                     _t__cr4 = L04b0 (_t__cr4);
-                    _t_ft_Ty = incptrdpth (regptr->ft_Ty = MSBrshft2 (_t_ft_Ty));
+                    _t_ft_Ty = incref (regptr->ft_Ty = decref (_t_ft_Ty));
                 }
                 else
                 {
-                    _t_ft_Ty = incptrdpth (regptr->ft_Ty = _t_ft_Ty);
+                    _t_ft_Ty = incref (regptr->ft_Ty = _t_ft_Ty);
                 }
 
                 regptr->__cr18 = 1;
@@ -434,8 +434,8 @@ CMDREF *oldref;
             {
                 switch (v4 = v16->cmdval)      /* L14a9 */
                 {
-                    case C_X_RGWRD:    /* _179 */     /* L14b4 */
-                    case C_RGWRD:    /* L14b4 */
+                    case C_X_RGWRD:
+                    case C_RGWRD:       /* L14b4 */
                         oldref->vartyp = v4;
                         oldref->cmdval = 0;
                         break;
@@ -468,8 +468,8 @@ CMDREF *oldref;
             if ((inparentheses (_t_ft_Ty = oldref->ft_Ty)) ||
                         (inbraces (_t_ft_Ty)))
             {
-                err_lin (oldref, "cannot cast");
-                _t_ft_Ty = incptrdpth (_t_ft_Ty);
+                terror (oldref, "cannot cast");
+                _t_ft_Ty = incref (_t_ft_Ty);
             }
 
             if (ispointer (_t_ft_Ty))
@@ -483,7 +483,7 @@ CMDREF *oldref;
 
             _t__cr4 = oldref->__cr4;        /* L1568 */
             _t__cr2 = oldref->__cr2;
-            mak_curnt (oldref);
+            release (oldref);
             oldref = regptr;
             break;
         case C_AMPERSAND:   /* L1586 */
@@ -491,13 +491,13 @@ CMDREF *oldref;
             
             if ((regptr->vartyp == 118) || (regptr->vartyp == 111))
             {
-                err_lin (oldref, "can't take address");
+                terror (oldref, "can't take address");
                 L25e6 (regptr);
             }
 
             _t_cr_18 = regptr->__cr18;
             _t__cr2 = regptr->__cr2;
-            _t_ft_Ty = incptrdpth (regptr->ft_Ty);
+            _t_ft_Ty = incref (regptr->ft_Ty);
             _t__cr4 = regptr->__cr4;
             break;
         case C_ASTERISK:    /* L15d4 */
@@ -505,18 +505,18 @@ CMDREF *oldref;
             
             if (ispointer (_t_ft_Ty = regptr->ft_Ty)) /* else L1618 */
             {
-                _t_ft_Ty = MSBrshft2 (_t_ft_Ty);
+                _t_ft_Ty = decref (_t_ft_Ty);
 
                 if (inbraces (_t_ft_Ty))  /* else L163a */
                 {
-                    _t_ft_Ty = incptrdpth (MSBrshft2 (_t_ft_Ty));
-                    mak_curnt (oldref);
+                    _t_ft_Ty = incref (decref (_t_ft_Ty));
+                    release (oldref);
                     oldref = regptr;
                 }
             }
             else
             {
-                err_lin (regptr, "pointer required");
+                terror (regptr, "pointer required");
                 L25e6 (regptr);
                 regptr->ft_Ty = 17;
                 _t_ft_Ty = FT_INT;
@@ -533,8 +533,8 @@ CMDREF *oldref;
 
             if (!(v18->cmdval) && !(v0))
             {
-                mak_curnt (v18);
-                mak_curnt (oldref);
+                release (v18);
+                release (oldref);
                 oldref = regptr;
                 _t_cr_18 = oldref->__cr18;     /* go to L16fd */
             }
@@ -545,7 +545,7 @@ CMDREF *oldref;
                 if (regptr->vartyp == C_ASTERISK)   /* else L16bf */
                 {
                     v16 = regptr->cr_Left;
-                    mak_curnt (regptr);
+                    release (regptr);
                     oldref->cr_Left = (regptr = v16);
                 }
                 else
@@ -554,7 +554,7 @@ CMDREF *oldref;
                     regptr = oldref->cr_Left =
                         add_cmdref (C_AMPERSAND, regptr, 0, 0,
                                     regptr->_cline, regptr->_lpos);
-                    regptr->ft_Ty = incptrdpth (v4);
+                    regptr->ft_Ty = incref (v4);
                 }
 
                 regptr->__cr18 = _t_cr_18;
@@ -570,7 +570,7 @@ CMDREF *oldref;
             {
                 if (!((ispointer (v4)) ? 1 : 0))   /* Trying to match code */
                 {
-                    err_lin (regptr, "pointer or integer required");
+                    terror (regptr, "pointer or integer required");
                     regptr->vartyp = C_INTSQUOT;
                     regptr->cmdval = 0;
                     regptr->__cr18 = 0;
@@ -584,7 +584,7 @@ L175b:
 
             if (!v0)        /* else L17bb */
             {
-                oldref->ft_Ty = incptrdpth (_t_ft_Ty);
+                oldref->ft_Ty = incref (_t_ft_Ty);
                 oldref->__cr18 = _t_cr_18;
                 oldref->__cr2 = _t__cr2; 
                 oldref = add_cmdref (C_ASTERISK, oldref, 0, 0,
@@ -596,18 +596,18 @@ L175b:
             _t_ft_Ty = regptr->ft_Ty;
 
             if ((regptr->vartyp == C_AMPERSAND) &&
-                    (inparentheses (MSBrshft2 (_t_ft_Ty))))
+                    (inparentheses (decref (_t_ft_Ty))))
             {       /* else L17fa */
                 v16 = oldref->cr_Left = regptr->cr_Left;
-                mak_curnt (regptr);
-                _t_ft_Ty = MSBrshft2 (v16->ft_Ty);
+                release (regptr);
+                _t_ft_Ty = decref (v16->ft_Ty);
                 /* go to L185e */
             }
             else
             {
                 if (inparentheses (_t_ft_Ty))
                 {
-                    _t_ft_Ty = MSBrshft2 (_t_ft_Ty);      /* go to L185e */
+                    _t_ft_Ty = decref (_t_ft_Ty);      /* go to L185e */
                 }
                 else
                 {
@@ -624,7 +624,7 @@ L175b:
                     }
                     else
                     {
-                        err_lin (regptr, "not a function");
+                        terror (regptr, "not a function");
                         _t_ft_Ty &= 0x0f;
                     }
                 }
@@ -680,7 +680,7 @@ L175b:
             
             if ((_t_ft_Ty = regptr->ft_Ty) & 0x30)      /* else L1920 */
             {
-                oldref->cmdval = L418a (MSBrshft2 (_t_ft_Ty),
+                oldref->cmdval = L418a (decref (_t_ft_Ty),
                                          regptr->__cr2, regptr->__cr4);
             }
             else
@@ -729,7 +729,7 @@ L175b:
                     (cktypnumeric (v18) == FT_DOUBLE))        /* else L19c6 */
             {
 L19a6:
-                err_lin (oldref, "both must be integral");
+                terror (oldref, "both must be integral");
                 L25e6 (oldref);
                 break;
             }
@@ -806,12 +806,12 @@ L19a6:
 
                     if ((_t_ft_Ty != v18->ft_Ty) || (_t__cr2 != v18->__cr2))
                     {
-                        err_lin (oldref, "pointer mismatch");
+                        terror (oldref, "pointer mismatch");
                         /* go to L1b7e */
                     }
                     else
                     {
-                        _t_ft_Ty = MSBrshft2 (_t_ft_Ty);
+                        _t_ft_Ty = decref (_t_ft_Ty);
                         
                         if ((_t__cr2 = L418a (_t_ft_Ty, _t__cr2, _t__cr4)) != 1) /* else L1b7e */
                         {
@@ -909,7 +909,7 @@ L1cf0:
                     if (_t_ft_Ty == FT_CHAR)    /* else L1d2a */
                     {
                         oldref->cr_Left = regptr->cr_Left;
-                        mak_curnt (regptr);
+                        release (regptr);
                         regptr = oldref->cr_Left;
                         _t_ft_Ty = FT_INT;
                     }
@@ -928,7 +928,7 @@ L1d4f:
             
             /*goto L1d66;*/     /* L1cba */
 L1d66:
-            err_lin (oldref, "type mismatch");  /* go to L1e44 */
+            terror (oldref, "type mismatch");  /* go to L1e44 */
             break;
         case C_COLON:       /* L1d7a */
             if (ispointer ((_t_ft_Ty = regptr->ft_Ty)))    /* else L1dd9 */
@@ -942,7 +942,7 @@ L1d66:
                     if ((_t_ft_Ty != v18->ft_Ty) ||
                             (regptr->__cr2 != v18->__cr2))
                     {
-                        err_lin (oldref, "pointer mismatch");
+                        terror (oldref, "pointer mismatch");
                         /*break;*/
                     }
                     else
@@ -1005,7 +1005,7 @@ register CMDREF *regptr;
 {
     if ((regptr->vartyp != C_INTSQUOT) || (regptr->cmdval))
     {
-        err_lin (regptr, "should be NULL");
+        terror (regptr, "should be NULL");
         regptr->vartyp = C_INTSQUOT;        /* Store correct value */
         regptr->cmdval = 0;
     }
@@ -1046,7 +1046,7 @@ cktypnumeric (c_ref)
         case FT_UNSIGNED:
             break;
         default:     /* L1feb */
-            err_lin (c_ref, "type error");
+            terror (c_ref, "type error");
             _ttype = FT_INT;
             break;
     }
@@ -1332,7 +1332,7 @@ L21b9:
     /* _429 (L2303) */
     if (_cast_type)     /* else L233b */
     {
-        CmdrefCpy (ptr, (_valptr = add_cmdref (0, 0, 0, 0, 0, 0)));
+        nodecopy (ptr, (_valptr = add_cmdref (0, 0, 0, 0, 0, 0)));
         ptr->vartyp = _cast_type;
         ptr->cr_Left = _valptr;
         ptr->cr_Right = 0;
@@ -1412,7 +1412,7 @@ L23c4 (p1, p2, p3, p4)
 {
     register CMDREF *regptr;
 
-    if ((p1 = L418a (MSBrshft2 (p2), p1, p3)) == 1)
+    if ((p1 = L418a (decref (p2), p1, p3)) == 1)
     {
         return p4;
     }
@@ -1471,7 +1471,7 @@ L2463 (regptr, p2)
         }
     }
 
-    err_lin (regptr, "lvalue required");        /* L24bc */
+    terror (regptr, "lvalue required");        /* L24bc */
     L25e6 (regptr);
 
 }
@@ -1486,7 +1486,7 @@ ck_declared (regptr)
 {
     if ((regptr->vartyp == C_USRLBL) && !(regptr->ft_Ty))    /* else L25b3 */
     {
-        err_lin (regptr, "undeclared variable");
+        terror (regptr, "undeclared variable");
         L25e6 (regptr);
     }
 }
@@ -1510,8 +1510,8 @@ L2502 (regptr, p2, p3)
         *p3 = 1;
         v0 = regptr->cr_Left;
         v0->__cr4 = regptr->__cr4;
-        CmdrefCpy (v0, regptr);
-        mak_curnt (v0);
+        nodecopy (v0, regptr);
+        release (v0);
     }
     else
     {
@@ -1537,7 +1537,7 @@ L2502 (regptr, p2, p3)
     }
 
 L2584:
-    err_lin (regptr, "struct member required");
+    terror (regptr, "struct member required");
     L25e6 (regptr);
     regptr->vartyp = C_INTSQUOT;
     regptr->cmdval = 0;
@@ -1556,7 +1556,7 @@ get_ftty (regptr)
 {
     if ((regptr->ft_Ty == FT_STRUCT) || (regptr->ft_Ty == FT_UNION))
     {
-        err_lin (regptr, "structure or union inappropriate");
+        terror (regptr, "structure or union inappropriate");
         L25e6 (regptr);
     }
 
@@ -1619,5 +1619,5 @@ notintegral (c_ref)
     CMDREF *c_ref;
 #endif
 {
-    err_lin (c_ref, "must be integral");
+    terror (c_ref, "must be integral");
 }

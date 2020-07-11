@@ -30,23 +30,23 @@ extern char _chcodes[];
 
 /* ************************************************************ *
  * nxt_word() - Process a group of characters                   *
- *      Sets up D005f and LblVal to appropriate codes            *
+ *      Sets up sym and LblVal to appropriate codes            *
  *      If it's a valid Label, finds label or creates an entry  *
  *      If number, retrieves it and sets it up                  *
  *      If assignment or operator, sets up definition for it    *
  * Exit conditions:                                             *
  *      Builtin:                                                *
- *        D005f = C_* type                                      *
+ *        sym = C_* type                                      *
  *        LblVal = fnccode (FT_EXTERN if SIZEOF)                 *
  *      User Defined Label:                                     *
- *        D005f = C_USRLBL                                      *
+ *        sym = C_USRLBL                                      *
  *        LblVal = ptr to LBLDEF struct for this variable        *
  *      Numeric:                                                *
- *        D005f = C_* type of number                            *
+ *        sym = C_* type of number                            *
  *        LblVal = value itself if size <= sizeof (int)          *
  *                else ptr to the storage of the value          *
  *      Anything else:                                          *
- *        D005f = C_* type                                      *
+ *        sym = C_* type                                      *
  *        LblVal = Info regarding any additional chars.  I.E.    *
  *                whether is is "+", "++", "+=", etc            *
  * ************************************************************ */
@@ -72,14 +72,14 @@ nxt_word ()
 
     if (CurChr == -1)
     {
-        D005f = -1;
+        sym = -1;
         return;
     }
 
     D0063 = CurLine - 1;
     D003f = fileline;
 
-    while ((D005f = _chcodes[CurChr]) == '\0')
+    while ((sym = _chcodes[CurChr]) == '\0')
     {
         reprterr ("bad character");
         getnxtch ();
@@ -88,7 +88,7 @@ nxt_word ()
 
     LblVal = _chcod_2[CurChr];
 
-    switch (D005f)     /* at L5873 */
+    switch (sym)     /* at L5873 */
     {
         /*register union data_tys *_treept;*/
         register void *_treept;
@@ -100,19 +100,19 @@ nxt_word ()
 
             /* gentyp = 51 ==> "builtin" ?? */
 
-            if ((D005f = ((LBLDEF *)_treept)->gentyp) == C_BUILTIN)
+            if ((sym = ((LBLDEF *)_treept)->gentyp) == C_BUILTIN)
             {
                 /* All builtins except sizeof return unchanged */
 
                 if ((LblVal = ((LBLDEF *)_treept)->fnccode) == FT_SIZEOF)
                 {
-                   D005f = C_SIZEOF;
+                   sym = C_SIZEOF;
                    LblVal = FT_EXTERN;        /* 14 */
                 }
             }
             else
             {
-               D005f = C_USRLBL;
+               sym = C_USRLBL;
                LblVal = (int)_treept;
             }
 
@@ -127,24 +127,24 @@ L55dc:
             {
                 case FT_INT:    /* 1 */     /* L55e8 */
                     LblVal = *(int *)_valptr;
-                    D005f = C_INTSQUOT;    /* '6' */
+                    sym = C_INTSQUOT;    /* '6' */
                     break;
                 case FT_LONG:  /* 8 */    /* L55ed */
                     _treept = addmem (sizeof (long));
                     *(long *)_treept = *(long *)_valptr;
                     LblVal = (int)_treept;
-                    D005f = C_LONG;    /* 'J' */
+                    sym = C_LONG;    /* 'J' */
                     break;
                 case FT_DOUBLE:    /* L5609 */
                     _treept = addmem (sizeof (double));
                     *(double *)_treept = *(double *)_valptr;
                     LblVal = (int)_treept;
-                    D005f = C_DOUBLE;    /* 'K' */
+                    sym = C_DOUBLE;    /* 'K' */
                     break;
                 default:   /* L5625 */
                     reprterr ("constant overflow");
                     LblVal = 1;
-                    D005f = C_INTSQUOT;        /* '6' */
+                    sym = C_INTSQUOT;        /* '6' */
                     break;
             }
 
@@ -152,16 +152,16 @@ L55dc:
 
         case  0x68: /* ' (single quote)*/  /* L564e */
             do_squot ();
-            D005f = C_INTSQUOT;
+            sym = C_INTSQUOT;
             break;
         case  0x69: /* " (double quote) */ /* L5656 */
             do_dquot ();
-            D005f = C_DQUOT;
+            sym = C_DQUOT;
             break;
         default:   /* L5661 */
             getnxtch ();
 
-            switch (D005f)
+            switch (sym)
             {
                 case C_PERIOD: /* '.' */       /* L5669 */
                     if (_chcodes[CurChr] == 0x6b)  /* Digit */
@@ -176,12 +176,12 @@ L55dc:
                     switch (CurChr)
                     {
                         case '&':          /* L5698 */
-                            D005f = C_ANDAND;
+                            sym = C_ANDAND;
                             getnxtch ();
                             LblVal = 5;
                             break;
                         case '=':        /* L56a5 */
-                            D005f = C_ANDEQ;
+                            sym = C_ANDEQ;
                             LblVal = 2;
                             getnxtch ();   /* 2008/04/15 fix &= error??? */
                             break;
@@ -191,7 +191,7 @@ L55dc:
                 case C_EQUAL:              /* L56bd */
                     if (CurChr == '=')
                     {
-                        D005f = C_EQEQ;
+                        sym = C_EQEQ;
                         LblVal = 9;
                         getnxtch ();
                     }
@@ -201,12 +201,12 @@ L55dc:
                     switch (CurChr)
                     {
                         case '|':          /* L56d7 */
-                            D005f = C_OROR;
+                            sym = C_OROR;
                             getnxtch ();
                             LblVal = 4;
                             break;
                         case '=':          /* L56e4 */
-                            D005f = C_OREQ;    /* +80 */
+                            sym = C_OREQ;    /* +80 */
                             getnxtch ();
                             LblVal = 2;
                             break;
@@ -216,7 +216,7 @@ L55dc:
                 case C_EXCLAM:              /* L5701 */
                     if (CurChr == '=')
                     {
-                        D005f = C_NOTEQ;
+                        sym = C_NOTEQ;
                         getnxtch ();
                         LblVal = 9;
                     }
@@ -225,7 +225,7 @@ L55dc:
                 case C_ASTERISK:             /* L5716 */
                     if (CurChr == '=')
                     {
-                        D005f = C_X_EQ;
+                        sym = C_X_EQ;
                         getnxtch ();
                         LblVal = 2;
                     }
@@ -236,7 +236,7 @@ L55dc:
                 case C_CARET:              /* L5723 */
                     if (CurChr == '=')
                     {
-                        D005f += 80;
+                        sym += 80;
                         getnxtch ();
                         LblVal = 2;
                     }
@@ -246,20 +246,20 @@ L55dc:
                     switch (CurChr)
                     {
                         case '<':          /* L573a */
-                            D005f = C_LSHIFT;
+                            sym = C_LSHIFT;
                             LblVal = 11;
                             getnxtch ();
 
                             if (CurChr == '=')
                             {
-                                D005f = C_LSHEQ;   /* +80 */
+                                sym = C_LSHEQ;   /* +80 */
                                 LblVal = 2;
                                 getnxtch ();
                             }
                             
                             break;
                         case '=':          /* L575a */
-                            D005f = C_LT_EQ;
+                            sym = C_LT_EQ;
                             LblVal = 10;
                             getnxtch ();
                             break;
@@ -270,20 +270,20 @@ L55dc:
                     switch (CurChr)
                     {
                         case '>':          /* L5779 */
-                            D005f = C_RSHIFT;
+                            sym = C_RSHIFT;
                             LblVal = 11;
                             getnxtch ();
 
                             if (CurChr == '=')
                             {
-                                D005f = C_RSH_EQ;  /*C_RSHFT + 80*/
+                                sym = C_RSH_EQ;  /*C_RSHFT + 80*/
                                 LblVal = 2;
                                 getnxtch ();
                             }
 
                             break;
                         case '=':              /* L5799 */
-                            D005f = C_GT_EQ;
+                            sym = C_GT_EQ;
                             LblVal = 10;
                             getnxtch ();
                             break;
@@ -294,12 +294,12 @@ L55dc:
                     switch (CurChr)
                     {
                         case '+':              /* L57b8 */
-                            D005f = C_PLUSPLUS;
+                            sym = C_PLUSPLUS;
                             LblVal = 14;
                             getnxtch ();
                             break;
                         case '=':              /* L57c2 */
-                            D005f = C_PLUSEQ;
+                            sym = C_PLUSEQ;
                             LblVal = 2;
                             getnxtch ();
                             break;
@@ -310,28 +310,28 @@ L55dc:
                     switch (CurChr)
                     {
                         case '-':              /* L57e0 */
-                            D005f = C_MINMINUS;
+                            sym = C_MINMINUS;
                             LblVal = 14;
                             getnxtch ();
                             break;
 
                         case '=':              /* L57ea */
-                            D005f = C_MINEQU;  /* C_MINUS + 80 */
+                            sym = C_MINEQU;  /* C_MINUS + 80 */
                             LblVal = 2;
                             getnxtch ();
                             break;
                         case '>':              /* L57f4 */
-                            D005f = C_PTRREF;  /* "->" */
+                            sym = C_PTRREF;  /* "->" */
                             LblVal = 15;
                             getnxtch ();
                             break;
                     }
 
                     break;
-            }      /* end switch (D005f) for default: */
+            }      /* end switch (sym) for default: */
 
             break;
-    }       /* end outer switch (D005f) */
+    }       /* end outer switch (sym) */
 }
 
 #ifndef COCO
@@ -599,12 +599,12 @@ int siz;
 #ifdef COCO
     if ((memptr = sbrk(siz)) == -1)
     {
-        err_quit ("out of memory");
+        fatal ("out of memory");
     }
 #else
     if (!(memptr = calloc (1, siz)))
     {
-        err_quit ("out of memory");
+        fatal ("out of memory");
     }
 #endif
 
@@ -953,7 +953,7 @@ do_dquot ()
             {
                 if (!(stmpFP = fopen (cstrtmp, "w+")))
                 {
-                    err_quit ("can't open strings file");
+                    fatal ("can't open strings file");
                 }
             }
 

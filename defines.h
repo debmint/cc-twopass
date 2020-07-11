@@ -4,6 +4,11 @@
 
 /* $Id: defines.h 25 2008-06-25 17:37:03Z dlb $ */
 
+/* Until all structs, etc are redone, simply call cj.h
+ * when completed, will eliminate this file
+ */
+#include "cj.h"
+
 /* COCO variable sizes */
 
 #define CHARSIZ 1
@@ -13,17 +18,11 @@
 #define FLOATSIZ 4
 #define DBLSIZ 8
 
-/* Define substitute for '\n'. We may later allow for output compatible
- * with different systems
- */
-
-#define NEWLINE 0x0d
-
 #define ispointer(s) (((s) & 0x30) == 0x10)
 #define inbraces(s) (((s) & 0x30) == 0x20)
 #define inparentheses(s) (((s) & 0x30) == 0x30)
 
-/* Label definition structure */
+/* Label definition structure (symnode) 30 bytes?? */
 
 typedef struct lbl_def {
     int gentyp;
@@ -44,6 +43,7 @@ typedef struct lbl_def {
  * that is defined for the current cmd, and is distinct from the "lbl_def"
  * structure.  It is a 22(?) byte structure, as opposed to the 28-byte
  * "lbldef" structure */
+/* expnode?? */
 
 typedef struct cmd_ref {
     int ft_Ty;
@@ -61,7 +61,7 @@ typedef struct cmd_ref {
     int cr_Nxt;
 } CMDREF;
 
-/* Case reference */
+/* Case reference - intnode?? */
 struct case_ref {
     struct case_ref *case_nxt;
     int cas04;
@@ -104,7 +104,7 @@ struct bracedef
 };
 
 /* Another structure of some sort found in p1_01.c
- * - We'll call it g18 for now */
+ * pshnode?? */
 struct g18 {
     struct g18 *g18Nxt;
     int g18_2;

@@ -49,7 +49,7 @@ typedef int void;
 /* The following were Direct Page variables */
 
 GLOBAL direct char *D0017;
-GLOBAL direct LBLDEF *D0019;
+GLOBAL direct symnode *D0019;
 GLOBAL direct FILE *strsFP;
 GLOBAL direct int  D001d;
 GLOBAL direct char *srcfile;
@@ -59,7 +59,7 @@ GLOBAL direct FILE *inpth,
 GLOBAL direct int fileline,
                   ErrCount;
 GLOBAL direct int LblNum;
-GLOBAL direct CMDREF *D002d;
+GLOBAL direct expnode *D002d;
 GLOBAL direct int D002f;
 GLOBAL direct int D0031;
 GLOBAL direct int D0033;
@@ -70,11 +70,11 @@ GLOBAL direct int D003b;
 GLOBAL direct int D003d;
 GLOBAL direct int D003f;
 GLOBAL direct int Struct_Union;
-GLOBAL direct struct g18 *G18Current;
+GLOBAL direct symnode *G18Current;
 GLOBAL direct int D0045;
-GLOBAL direct LBLDEF *D0047;
-GLOBAL direct LBLDEF *D0049;
-GLOBAL direct LBLDEF *D004b;
+GLOBAL direct symnode *D0047;
+GLOBAL direct symnode *D0049;
+GLOBAL direct symnode *D004b;
 GLOBAL direct int D004d;
 GLOBAL direct int D004f;
 GLOBAL direct int D0051;
@@ -84,12 +84,12 @@ GLOBAL direct int D0057;
 GLOBAL direct int CaseList;
 GLOBAL direct struct case_ref *CaseNow;
 GLOBAL direct int notusd5d;
-GLOBAL direct int D005f;
+GLOBAL direct int sym;
 GLOBAL direct int LblVal;
 GLOBAL direct char *D0063;
 GLOBAL direct char CurChr;
-GLOBAL direct LBLDEF *LblPtrLow;
-GLOBAL direct LBLDEF *LblPtrEnd;
+GLOBAL direct symnode *LblPtrLow;
+GLOBAL direct symnode *LblPtrEnd;
 GLOBAL direct char *CurLine;
 GLOBAL direct FILE *stmpFP;
 GLOBAL direct long not_used;    /* Something not used ??? */
@@ -134,7 +134,7 @@ GLOBAL char D02da[10];
 GLOBAL char D02e4[10];
 GLOBAL char D02ee[256],
             CurFilNam[30];
-GLOBAL LBLDEF *NStrLbls[128],
+GLOBAL symnode *NStrLbls[128],
               *StrctLbls[128];
 GLOBAL char inpbuf[256],
             prevlin[256];

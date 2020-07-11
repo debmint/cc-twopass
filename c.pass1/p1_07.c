@@ -531,7 +531,7 @@ register CMDREF *wp;
 
         switch (ldf->fnccode)
         {
-            case FT_EXTERN:     /* 14 */     /* L4f0e */
+            case FT_EXTERN:     /* L4f0e */
             case FT_LSEEK:      /* 12 */
             case FT_DIRECT:     /* 33 */
             case FT_DPXTRN:     /* 34 */
@@ -595,7 +595,7 @@ int countflg;
     }
     else
     {
-        if (valu == 0)        /* L4fff */     /* else 5030 */
+        if (valu == 0)        /* L4fff  else 5030 */
         {
             v0 = 1;
 

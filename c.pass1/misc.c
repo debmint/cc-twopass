@@ -53,7 +53,7 @@ direct int *D0001 = &(TenMults[sizeof (TenMults)/sizeof (TenMults[0])]);
 
 
 /* **************************************************************** *
- * null_lbldef () - Copies LBLDEF * to G18Current and nulls out     *
+ * pushdown () - Copies LBLDEF * to G18Current and nulls out     *
  *            everything in the original LBLDEF (passed as the      *
  *            parameter) - except for label name                    *
  * **************************************************************** */
@@ -62,19 +62,19 @@ direct int *D0001 = &(TenMults[sizeof (TenMults)/sizeof (TenMults[0])]);
 
 void
 #ifndef COCO
-null_lbldef (register LBLDEF *srcdef)
+pushdown (register symnode *sptr)
 #else
-null_lbldef (srcdef)
-register LBLDEF *srcdef;
+pushdown (sptr)
+    register symnode *sptr;
 #endif
 {
-    struct g18 *_olddef;
-    struct g18 *_destdef;
+    symnode *tmpdef;
+    symnode *nptr;
     int __count;
 
-    if (_destdef = G18Current)
+    if (nptr = G18Current)
     {
-        G18Current = _destdef->g18Prev;
+        G18Current = nptr->snext;
     }
     else
     {
@@ -82,29 +82,29 @@ register LBLDEF *srcdef;
          * it may endure for the duration of the program
          */
 
-        _destdef = addmem (sizeof (struct g18));
+        nptr = (symnode *)addmem (DOWNSIZE);
     }
 
 #ifdef COCO
-    mem_cp ((_olddef = srcdef), _destdef, sizeof (struct g18));
+    mem_cp ((tmpdef = sptr), nptr, DOWNSIZE);
     __count = (sizeof (struct g18))/(sizeof (int));
 
     while (__count--)
     {
         /* orig code does clra clrb std ,u++ */
         /* this increments u, then stores d -2,u */
-        *(((int *)srcdef)++) = 0;
+        *(((int *)sptr)++) = 0;
     }
 #else
-    memmove (_destdef, (_olddef = srcdef), sizeof (struct g18));
-    memset (srcdef, 0, sizeof (struct g18));
+    memmove (nptr, (tmpdef = sptr), DOWNSIZE);
+    memset (sptr, 0, DOWNSIZE);
 #endif
 
-    _olddef->g18_14 = _destdef;
+    tmpdef->downptr = nptr;
 }
 
 /* ********************************************************** *
- * fill_g18 () - This function _seems_ to move the LBLDEF     *
+ * pullup () - This function _seems_ to move the LBLDEF     *
  *          passed as a parameter to the top of the tree..??  *
  * Exit Conditions:                                           *
  *      deftop->g18Prev points to G18Current contents         *
@@ -113,22 +113,22 @@ register LBLDEF *srcdef;
 
 void
 #ifndef COCO
-fill_g18 (register LBLDEF *dstdef)
+pullup (register symnode *sptr)
 #else
-fill_g18 (dstdef)
-register LBLDEF *dstdef;
+pullup (sptr)
+register symnode *sptr;
 #endif
 {
-    struct g18 *__def_top = dstdef->ftop;
+    symnode *nptr = sptr->downptr;
 
-    mem_cp (__def_top, dstdef, sizeof (struct g18));
-    __def_top->g18Prev = G18Current;
-    G18Current = __def_top;
+    mem_cp (nptr, sptr, DOWNSIZE);
+    nptr->snext = G18Current;
+    G18Current = nptr;
 }
 
 void
 #ifndef COCO
-mem_cp (register char *_src, char *_dest, int siz)
+mem_cp (register void *_src, void *_dest, int siz)
 #else
 mem_cp (_src, _dest, siz)
     register char *_src;
@@ -138,7 +138,7 @@ mem_cp (_src, _dest, siz)
 {
     while (siz--)
     {
-        *(_dest++) = *(_src++);
+        *(char *)(_dest++) = *(char *)(_src++);
     }
 }
 
@@ -154,9 +154,9 @@ prnt_filname ()
 
 int 
 #ifndef COCO
-err_quit (char *p1)
+fatal (char *p1)
 #else
-err_quit (p1)
+fatal (p1)
 char *p1;
 #endif
 {
@@ -184,50 +184,50 @@ reprterr (_str)
 char *_str;
 #endif
 {
-    showline (D0063 - inpbuf, _str, D003f);
+    doerr (D0063 - inpbuf, _str, D003f);
 }
 
 void
 #ifndef COCO
-comperr (int *p1, char *_errmsg)
+comperr (expnode *p1, char *_errmsg)
 #else
 comperr (p1, _errmsg)
-int *p1;
-char *_errmsg;
-#endif
-{
-    /* 50 bytes storage */
-    char _str[50];
-
-    strcpy (_str, "compiler error - ");
-    strcat (_str, _errmsg);
-    err_lin (p1, _str);
-}
-
-void
-#ifndef COCO
-err_lin (register CMDREF *p1, char *_errmsg)
-#else
-    err_lin (p1, _errmsg)
-    register CMDREF *p1;
+    register expnode *p1;
     char *_errmsg;
 #endif
 {
-    showline ((p1->_lpos) - (int)inpbuf, _errmsg, p1->_cline);
+    /* 50 bytes storage */
+    char newstr[50];
+
+    strcpy (newstr, "compiler error - ");
+    strcat (newstr, _errmsg);
+    terror (p1, newstr);
 }
 
 void
 #ifndef COCO
-showline (register int _linpos, char *txt, int _line)
+terror (register expnode *p1, char *_errmsg)
 #else
-    showline (_linpos, txt, _line)
+terror (p1, _errmsg)
+    register expnode *p1;
+    char *_errmsg;
+#endif
+{
+    doerr ((int)(p1->pnt) - (int)inpbuf, _errmsg, p1->lno);
+}
+
+void
+#ifndef COCO
+doerr (register int _linpos, char *txt, int _line)
+#else
+doerr (_linpos, txt, _line)
     register int _linpos;
     char *txt;
     int _line;
 #endif
 {
     prnt_filname ();
-    displerr ("line %d  ", _line);
+    displerr ("line %d  ", (void *)_line);
     displerr ("****  %s  ****\n", txt);
 
     if (_line == fileline)      /* else L02ec */
@@ -251,8 +251,6 @@ L0303:
         }
     }
 
-    /*++ErrCount;*/     /* _20 */   /* L0323 */
-
     if ((++ErrCount) > 30)
     {
         fflush (stderr);
@@ -264,7 +262,7 @@ L0303:
 
 void
 #ifndef COCO
-displerr (char *pmpt, char *val)
+displerr (char *pmpt, void *val)
 #else
 displerr (pmpt, val, p3)
     char *pmpt;
@@ -306,66 +304,66 @@ char ch;
 
 void
 #ifndef COCO
-L0393 (register CMDREF *p1)
+L0393 (register expnode *tree)
 #else
-L0393 (p1)
-    register CMDREF *p1;
+L0393 (tree)
+    register expnode *tree;
 #endif
 {
-    if (p1)
+    if (tree)
     {
-        L0393 (p1->cr_Left);
-        L0393 (p1->cr_Right);
-        mak_curnt (p1);
+        L0393 (tree->left);
+        L0393 (tree->right);
+        release (tree);
     }
 }
 
 /* **************************************************** *
- * mak_curnt () - Makes the CMDREF passed the current   *
+ * release () - Makes the CMDREF passed the current   *
  *      cmd.  Moves the CMDREF in D002d to its Prev     *
  *      and stores this CMDREF into D002d               *
  * **************************************************** */
 
 void
 #ifndef COCO
-mak_curnt (register CMDREF *p1)
+release (register expnode *p1)
 #else
-mak_curnt (p1)
-    register CMDREF *p1;
+release (p1)
+    register expnode *p1;
 #endif
 {
     if (p1)
     {
-        p1->cr_Left = D002d;
+        p1->left = D002d;
         D002d = p1;
     }
 }
 
 void
 #ifndef COCO
-CmdrefCpy (CMDREF *p1, int p2)
+nodecopy (char *p1, char *p2)
 #else
-CmdrefCpy (p1, p2)
-    CMDREF *p1;
-    CMDREF *p2;
+nodecopy (p1, p2)
+    char *p1;
+    char *p2;
 #endif
 {
-    mem_cp (p1, p2, sizeof (CMDREF));
+    mem_cp (p1, p2, NODESIZE);
 }
 
 /* *************************************************** *
- * isvariable () - Returns TRUE if the definition is   *
+ * istype () - Returns TRUE if the definition is   *
  *          a variable and not a type definition.      *
  * *************************************************** */
 
 int 
 #ifndef COCO
-isvariable (void)
+istype (void)
 #else
-isvariable ()
+istype ()
 #endif
 {
-    if (D005f == C_BUILTIN)    /* else L0428 */
+    if (sym == C_BUILTIN)    /* else L0428 */
     {
         switch (LblVal)
         {
@@ -385,9 +383,9 @@ isvariable ()
     }
     else        /* L0428 */
     {
-        if (D005f == C_USRLBL)        /* else _67 (L04c8) */
+        if (sym == C_USRLBL)        /* else _67 (L04c8) */
         {
-            if (((LBLDEF *)LblVal)->fnccode == FT_TYPEDEF)
+            if (((symnode *)LblVal)->storage == FT_TYPEDEF)
             {
                 return 1;
             }
@@ -398,18 +396,14 @@ isvariable ()
 }
 
 /* ********************************************************** *
- * is_sc_specifier () - Returns true if a the word is a       *
+ * issclass () - Returns true if a the word is a       *
  *      storage class specification                           *
  * ********************************************************** */
 
 int 
-#ifndef COCO
-is_sc_specifier (void)
-#else
-is_sc_specifier()
-#endif
+issclass()
 {
-    if (D005f == C_BUILTIN)
+    if (sym == C_BUILTIN)
     {
         switch (LblVal)
         {
@@ -428,9 +422,9 @@ is_sc_specifier()
 
 int
 #ifndef COCO
-MSBrshft2 (int p1)
+decref (int p1)
 #else
-MSBrshft2 (p1)
+decref (p1)
 int p1;
 #endif
 {
@@ -439,9 +433,9 @@ int p1;
 
 int
 #ifndef COCO
-incptrdpth (int p1)
+incref (int p1)
 #else
-incptrdpth (p1)
+incref (p1)
 int p1;
 #endif
 {
@@ -450,13 +444,13 @@ int p1;
 
 int 
 #ifndef COCO
-L049b (register int p1)
+isbin (int p1)
 #else
-L049b (p1)
+isbin (p1)
 register int p1;
 #endif
 {
-    if ((p1 >= 76) && (p1 <= 99))   /* 'L'... 'c' */
+    if ((p1 >= 76) && (p1 <= 99))
     {
         return 1;
     }
@@ -481,7 +475,7 @@ L04b0 (p1)
 }
 
 /* ************************************************ *
- * lookfor () - if the current character in D005f   *
+ * need () - if the current character in sym   *
  *      is the parameter, process the input stream  *
  * Returns: 0 if char matches                       *
  *          1 if match fails and sends error msg    *
@@ -489,15 +483,15 @@ L04b0 (p1)
 
 int
 #ifndef COCO
-lookfor (int needed)
+need (int needed)
 #else
-lookfor (needed)
+need (needed)
 int needed;
 #endif
 {
     register int _chr;
 
-    if (D005f == needed)
+    if (sym == needed)
     {
         nxt_word ();
         return 0;
@@ -526,18 +520,18 @@ int needed;
 }
 
 /* ******************************************************** *
- * cmma_rbrkt () - Keep reading "words" from input stream   *
+ * junk () - Keep reading "words" from input stream   *
  *      until either a comma or RBracket is found           *
  * ******************************************************** */
 
 void 
 #ifndef COCO
-cmma_rbrkt (void)
+junk (void)
 #else
-cmma_rbrkt ()
+junk ()
 #endif
 {
-    while ((D005f != C_SEMICOLON) && (D005f != C_RBRKET) && (D005f != -1))
+    while ((sym != C_SEMICOLON) && (sym != C_RBRKET) && (sym != -1))
     {
         nxt_word();
     }

@@ -287,6 +287,6 @@ gtnxtlin ()
 
     D003f = ++fileline;
     D0063 = inpbuf;
-    err_quit ("input line too long");
+    fatal ("input line too long");
 }
 

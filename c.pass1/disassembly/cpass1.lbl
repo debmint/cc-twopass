@@ -19,6 +19,7 @@ Struct_Union equ $41 D
 G18Current equ $43 D
 CaseList equ $59 D
 CaseNow equ $5b D
+sym eqy $5f D
 LblVal equ $61 D
 CurChr equ $65 D
 LblPtrLow equ $66 D
@@ -71,34 +72,35 @@ fixserr equ $123 L
 fsterr equ $13c L
 patch equ $163 L
 patch10 equ $16b L
-CmdrefCpy equ $03c4 L
+nodecopy equ $03c4 L
 main equ $6a70 L
 _exit equ $7946 L
 etext equ $794c L
 
-null_lbldef equ $017d L
-fill_g18 equ $01cf L
+pushdown equ $017d L
+pullup equ $01cf L
 mem_cp equ $01f6 L
 prnt_filname equ $0214 L
-err_quit equ $0228 L
+fatal equ $0228 L
 multdef equ $023e L
 reprterr equ $024b L
-err_lin equ $0293 L
+terror equ $0293 L
 comperr equ $025f L
-showline equ $02b1 L
+doerr equ $02b1 L
 displerr equ $034a L
 e_putlin equ $0365 L
 e_putc equ $037f L
 
-mak_curnt equ $03b4 L
-isvariable equ $03da L
+release equ $03b4 L
+istype equ $03da L
 
-is_sc_specifier equ $043c L
-MSBrshft2 equ $0477 L
-incptrdpth equ $0483 L
+issclass equ $043c L
+decref equ $0477 L
+incref equ $0483 L
+isbin equ $049b L
 
-cmma_rbrkt equ $04ff L
-lookfor equ $04bc L
+junk equ $04ff L
+need equ $04bc L
 
 is_math equ $0a9b L
 do_math equ $0b21 L

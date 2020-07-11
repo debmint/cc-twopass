@@ -1,28 +1,31 @@
+/* ../../../c.pass1/cmain.c */
+int main(int argc, char **argv);
+void quit_cc(void);
 /* ../../../c.pass1/p1_01.c */
-void null_lbldef(LBLDEF *srcdef);
-void fill_g18(LBLDEF *dstdef);
-void mem_cp(char *_src, char *_dest, int siz);
+void pushdown(symnode *sptr);
+void pullup(symnode *sptr);
+void mem_cp(void *_src, void *_dest, int siz);
 void prnt_filname(void);
-int err_quit(char *p1);
+int fatal(char *p1);
 void multdef(void);
 void reprterr(char *_str);
-void comperr(int *p1, char *_errmsg);
-void err_lin(CMDREF *p1, char *_errmsg);
-void showline(int _linpos, char *txt, int _line);
-void displerr(char *pmpt, char *val);
+void comperr(expnode *p1, char *_errmsg);
+void terror(expnode *p1, char *_errmsg);
+void doerr(int _linpos, char *txt, int _line);
+void displerr(char *pmpt, void *val);
 void e_putlin(char *str);
 void e_putc(char ch);
-void L0393(CMDREF *p1);
-void mak_curnt(CMDREF *p1);
-void CmdrefCpy(CMDREF *p1, int p2);
-int isvariable(void);
-int is_sc_specifier(void);
-int MSBrshft2(int p1);
-int incptrdpth(int p1);
-int L049b(int p1);
+void L0393(expnode *tree);
+void release(expnode *p1);
+void nodecopy(char *p1, char *p2);
+int istype(void);
+int issclass(void);
+int decref(int p1);
+int incref(int p1);
+int isbin(int p1);
 int L04b0(int *p1);
-int lookfor(int needed);
-void cmma_rbrkt(void);
+int need(int needed);
+void junk(void);
 /* ../../../c.pass1/p1_02.c */
 CMDREF *L0580(int p1);
 CMDREF *L0694(void);
@@ -166,9 +169,6 @@ void putc_e(void);
 int seek0_FP(FILE *_fp);
 void dumpstrs(void);
 void quitcc(void);
-/* ../../../c.pass1/p1_11.c */
-int main(int argc, char **argv);
-void quit_cc(void);
 /* ../../../c.pass1/printf.c */
 int _printf(char *fmt, int vals);
 int _fprintf(FILE *fp, char *fmt, int vals);

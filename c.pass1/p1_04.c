@@ -18,13 +18,13 @@ void
 do_loops ()
 #endif
 {
-    if (D005f != C_SEMICOLON)
+    if (sym != C_SEMICOLON)
     {
         D004f = 0;
     }
 
 L27e6:
-    switch (D005f)
+    switch (sym)
     {
         case C_SEMICOLON:     /* L290b */  /* '(' */
             break;
@@ -93,14 +93,14 @@ L27e6:
             }
         default:     /* L28a2 */
 L28a0:
-            if (is_sc_specifier () || isvariable ())
+            if (issclass () || istype ())
             {
                 reprterr ("illegal declaration");
                 
                 do
                 {
                     nxt_word ();
-                } while (D005f != C_SEMICOLON);
+                } while (sym != C_SEMICOLON);
 
                 break;
             }
@@ -110,7 +110,7 @@ L28c8:
                 if (!(L3082 (0)))
                 {
                     reprterr ("syntax error");
-                    cmma_rbrkt ();
+                    junk ();
                     return;
                 }
             }
@@ -118,7 +118,7 @@ L28c8:
             break;
     }
 
-    lookfor (C_SEMICOLON);     /* L290b */
+    need (C_SEMICOLON);     /* L290b */
 }
 
 #ifndef COCO
@@ -141,7 +141,7 @@ do_if ()
     _lbnumLo = ++LblNum;
     _lbnumHi = ++LblNum;
 
-    if (D005f == C_SEMICOLON)    /* else L2966 */
+    if (sym == C_SEMICOLON)    /* else L2966 */
     {
         nxt_word ();
         L3140 (v0, _lbnumLo, _lbnumHi, 0);
@@ -157,11 +157,11 @@ do_if ()
     }
 
     /* L2988 */
-    if ((D005f == C_BUILTIN) && (LblVal == 21))    /* else L29cd */
+    if ((sym == C_BUILTIN) && (LblVal == 21))    /* else L29cd */
     {
         nxt_word ();
 
-        if (D005f != C_SEMICOLON)        /* else L29cd */
+        if (sym != C_SEMICOLON)        /* else L29cd */
         {
             if (_lbnumLo != v2)   /* else L29ca */
             {
@@ -203,7 +203,7 @@ do_while ()
     D0055 = ++LblNum;
     v0 = L30e7 ();
 
-    if (D005f == C_SEMICOLON)
+    if (sym == C_SEMICOLON)
     {
         regptr = D0055;
     }
@@ -257,7 +257,7 @@ do_swtch ()
 
     /* get the case value */
 
-    lookfor (C_LPAREN);
+    need (C_LPAREN);
     
     if ((regptr = L0f18(L0580 (0))))       /* else L2b3e */
     {
@@ -286,7 +286,7 @@ do_swtch ()
         exprmsng ();    /* L2b3e */
     }
 
-    lookfor (C_RPAREN);
+    need (C_RPAREN);
     prt_4b5e (124, (v6 = ++LblNum), 0);
     do_loops ();
 
@@ -336,7 +336,7 @@ do_case ()
 
     nxt_word ();
     v0 = L0a4f (0);
-    lookfor (C_COLON);
+    need (C_COLON);
 
     if (D0057)          /* else L2c55 */
     {
@@ -397,7 +397,7 @@ do_deflt ()
         prntw_l ((D02d4 = ++LblNum));
     }
 
-    lookfor (C_COLON);
+    need (C_COLON);
 }
 
 #ifndef COCO
@@ -440,7 +440,7 @@ do_do ()
     prntw_l ((v4 = ++LblNum));
     do_loops ();
 
-    if ((D005f != C_BUILTIN) || (LblVal != 20))
+    if ((sym != C_BUILTIN) || (LblVal != 20))
     {
         reprterr ("while expected");
     }
@@ -484,17 +484,17 @@ do_for ()
     v10 = ++LblNum;
     D0053 = ++LblNum;
     nxt_word ();
-    lookfor (C_LPAREN);
+    need (C_LPAREN);
     L3082 (0);
-    lookfor (C_SEMICOLON);
+    need (C_SEMICOLON);
 
-    if (D005f != C_SEMICOLON)
+    if (sym != C_SEMICOLON)
     {
         v2 = L310e ();
         prt_4b5e (124, (v8 = ++LblNum), 0);
     }
 
-    lookfor (C_SEMICOLON);     /* L2de0 */
+    need (C_SEMICOLON);     /* L2de0 */
     
     if (v0 = L0f18 (L0580 (0)))
     {
@@ -506,7 +506,7 @@ do_for ()
         D0055 = v10;
     }
 
-    lookfor (C_RPAREN);
+    need (C_RPAREN);
     prntw_l (v10);
     do_loops ();
 
@@ -547,7 +547,7 @@ do_retrn ()
 
     nxt_word ();
 
-    if ((D005f != C_SEMICOLON) && (regptr = L0580 ((CMDREF *)0)))      /* else L2f00 */
+    if ((sym != C_SEMICOLON) && (regptr = L0580 ((CMDREF *)0)))      /* else L2f00 */
     {
         regptr = L0f18 (regptr);
         ck_declared (regptr);
@@ -631,7 +631,7 @@ do_goto ()
 
     nxt_word ();
 
-    if (D005f != C_USRLBL)
+    if (sym != C_USRLBL)
     {
         reprterr ("label required");
     }
@@ -701,7 +701,7 @@ L302b ()
                 return 0;
             }
 
-            null_lbldef (regptr); /* copy regptr to G18Current, null regptr */
+            pushdown (regptr); /* copy regptr to G18Current, null regptr */
         }
 
         regptr->gentyp = 9;
@@ -776,9 +776,9 @@ L30e7 ()
 {
     LBLDEF *v0;
 
-    lookfor (C_LPAREN);
+    need (C_LPAREN);
     v0 = L310e ();
-    lookfor (C_RPAREN);
+    need (C_RPAREN);
     return v0;
 }
 

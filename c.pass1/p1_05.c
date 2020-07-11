@@ -47,13 +47,13 @@ L3227 ()
 
     register LBLDEF *regpt;     /* I'm sure this is correct */
 
-    while (D005f == C_RBRKET)
+    while (sym == C_RBRKET)
     {
         reprterr ("too many brackets");
         nxt_word();
     }
 
-    if (D005f == C_LBRKET)
+    if (sym == C_LBRKET)
     {
         reprterr ("function header missing");
         /* I believe the parameter 0 is invalid.  We'll leave it
@@ -107,7 +107,7 @@ L3227 ()
 
         if (inparentheses (v6))      /* else L3316 */
         {
-            if ((D005f == C_COMMA) || (D005f == C_SEMICOLON))
+            if ((sym == C_COMMA) || (sym == C_SEMICOLON))
             {
                 v14 = FT_EXTERN;
             }
@@ -150,7 +150,7 @@ L3376:
 
             if (!(inparentheses (v6)))      /* else L3438 */
             {
-                if (D005f == C_EQUAL)       /* else L33b4 */
+                if (sym == C_EQUAL)       /* else L33b4 */
                 {
                     L4432 (regpt, v14, v6);      /* go to L341e */
                 }
@@ -196,7 +196,7 @@ L3376:
         /* L3438 ( _84 ) */
         if (inparentheses (v6))   /* else L34b4 */
         {
-            v6 = MSBrshft2 (v6);
+            v6 = decref (v6);
 
             if ((inbraces (v6)) || (inparentheses (v6)) ||
                     (v6 == 4) || (v6 == 3))
@@ -218,7 +218,7 @@ L3376:
             }
         }
 L34b1:
-        if (D005f == C_COMMA)
+        if (sym == C_COMMA)
         {
             nxt_word();
         }
@@ -228,9 +228,9 @@ L34b1:
         }
     }       /* end of "for (;;)" at L32bd */
 
-    if (lookfor (C_SEMICOLON))     /* _21 ( L34c2 ) */
+    if (need (C_SEMICOLON))     /* _21 ( L34c2 ) */
     {
-        cmma_rbrkt ();
+        junk ();
     }
 }
 
@@ -293,7 +293,7 @@ L34d6 ()
         {
             if (inbraces (v4))
             {
-                v4 = incptrdpth (MSBrshft2 (v4));   /* go to L358a */
+                v4 = incref (decref (v4));   /* go to L358a */
             }
             else
             {
@@ -337,12 +337,12 @@ L34d6 ()
         }
 
 L35f8:
-        if (D005f == C_EQUAL)
+        if (sym == C_EQUAL)
         {
             cant_init ();
         }
 
-        if (D005f == C_COMMA)
+        if (sym == C_COMMA)
         {
             nxt_word ();
         }
@@ -352,9 +352,9 @@ L35f8:
         }
     }       /* end for (;;) loop */
 
-    if (lookfor (C_SEMICOLON))     /* L3614 */     /* else L3876 */
+    if (need (C_SEMICOLON))     /* L3614 */     /* else L3876 */
     {
-        cmma_rbrkt ();
+        junk ();
     }
 }
 
@@ -444,7 +444,7 @@ L3628 ()
                 goto L3855;
             }
 
-            null_lbldef (regptr);     /* copy regptr to G18Current, null regptr */
+            pushdown (regptr);     /* copy regptr to G18Current, null regptr */
         }
 
         regptr->gentyp = v12;           /* L3727 */
@@ -456,7 +456,7 @@ L3628 ()
         
         if (!(l2 = L4100 (regptr, l0, _newsiz)))
         {
-            if (D005f != C_EQUAL)
+            if (sym != C_EQUAL)
             {
                 sizundef ();
             }
@@ -474,7 +474,7 @@ L3628 ()
                 break;
         }
 
-        if (D005f == C_EQUAL)   /* else L3824 */       /* L3787 */
+        if (sym == C_EQUAL)   /* else L3824 */       /* L3787 */
         {
             if ((l4 == FT_STATIC) || (l4 == FT_DPSTATIC))   /* else L37b4 */
             {
@@ -532,7 +532,7 @@ L3628 ()
         }
 
 L3855:
-        if (D005f != C_COMMA)    /* L3858 */
+        if (sym != C_COMMA)    /* L3858 */
         {
             break;
         }
@@ -540,7 +540,7 @@ L3855:
         nxt_word ();
     }       /* End of the for (;;) loop holding 6 bytes of data */
 
-    lookfor (C_SEMICOLON);
+    need (C_SEMICOLON);
 }
 
 #ifndef COCO
@@ -642,7 +642,7 @@ int myftyp;
 
     /* Get parameter definitions */
 
-    while (D005f != C_LBRKET)     /* L3924 */
+    while (sym != C_LBRKET)     /* L3924 */
     {
         L34d6 ();
     }
@@ -715,7 +715,7 @@ int myftyp;
     flgstkchk ();
     D0051 = 0;
 
-    if (D005f == -1)
+    if (sym == -1)
     {
         reprterr ("function unfinished");
     }
@@ -744,7 +744,7 @@ L3a4c ()
     ++D0051;
     v0 = D0031;
 
-    while (is_sc_specifier () || isvariable ())        /* L3a71 */
+    while (issclass () || istype ())        /* L3a71 */
     {
         L3628 ();
     }
@@ -772,7 +772,7 @@ L3a4c ()
         D0005 = v4;
     }
 
-    while ((D005f != C_RBRKET) && (D005f != -1))
+    while ((sym != C_RBRKET) && (sym != -1))
     {
         do_loops ();
     }
@@ -804,12 +804,12 @@ LBLDEF **p1;
     {
         nxt_word ();
 
-        if (D005f == C_RPAREN)        /* else L3bda */
+        if (sym == C_RPAREN)        /* else L3bda */
         {
             break;
         }
 
-        if (D005f == C_USRLBL)      /* else L3bcd */
+        if (sym == C_USRLBL)      /* else L3bcd */
         {
             regptr = (LBLDEF *)LblVal;
 
@@ -822,7 +822,7 @@ LBLDEF **p1;
                 if (regptr->gentyp)
                 {
                     /* copy regptr to G18Current, null regptr */
-                    null_lbldef (regptr);
+                    pushdown (regptr);
                 }
             }
 
@@ -850,9 +850,9 @@ LBLDEF **p1;
             noidentf ();
         }
 
-    } while (D005f == C_COMMA);          /* end for (;;) loop */
+    } while (sym == C_COMMA);          /* end for (;;) loop */
 
-    lookfor (C_RPAREN);     /* L3bda */
+    need (C_RPAREN);     /* L3bda */
 }
 
 /* ************************************************************ *
@@ -880,14 +880,14 @@ getSC_word ()
 
     /* If it's a storage class, i.e. extern, static, auto, etc */
 
-    if (is_sc_specifier ())     /* else L3c2f */
+    if (issclass ())     /* else L3c2f */
     {
         _sc_fty = LblVal;      /* FT_type */
         nxt_word ();
 
         /* Direct Page reference = old FT_ + 2 */
 
-        if ((D005f == C_BUILTIN) && (LblVal == FT_DIRECT))    /* else L3c2b */
+        if ((sym == C_BUILTIN) && (LblVal == FT_DIRECT))    /* else L3c2b */
         {
             switch (_sc_fty)
             {
@@ -955,7 +955,7 @@ struct memberdef **lastmember;
     /* On entry here, we have some type of label.  It's either a
      * data type (int, char, etc), or a function name */
 
-    if (D005f == C_BUILTIN)             /* else L3f51 */
+    if (sym == C_BUILTIN)             /* else L3f51 */
     {
         switch ((lbl_fttyp = LblVal))    /* L3f0f */
         {
@@ -966,7 +966,7 @@ struct memberdef **lastmember;
                 nxt_word ();
 
                 
-                if ((D005f == C_BUILTIN) && (LblVal == FT_INT))  /* else L3f79 */
+                if ((sym == C_BUILTIN) && (LblVal == FT_INT))  /* else L3f79 */
                 {
                     nxt_word ();
                 }
@@ -985,7 +985,7 @@ struct memberdef **lastmember;
                 
                 /* Check for "long int" or "long float" */
 
-                if (D005f == C_BUILTIN)
+                if (sym == C_BUILTIN)
                 {
                     if (LblVal == FT_INT)
                     {
@@ -1031,7 +1031,7 @@ struct memberdef **lastmember;
 
                 /* Process struct name if applicable */
 
-                if (D005f == C_USRLBL)    /* else L3d5d */
+                if (sym == C_USRLBL)    /* else L3d5d */
                 {           /* We have a struct name */
                     _strctdef = (LBLDEF *)LblVal;      /* Pointer to LBLDEF */
 
@@ -1056,7 +1056,7 @@ struct memberdef **lastmember;
                     
                     nxt_word ();        /* L3d1b */
 
-                    if (D005f != C_LBRKET)
+                    if (sym != C_LBRKET)
                     {
                         /* something like "struct somestruct structname" */
                         if (_strctdef->gentyp == G_STRCT)
@@ -1083,7 +1083,7 @@ struct memberdef **lastmember;
                     }
                 }       /* end process struct name */
 
-                if (D005f != C_LBRKET)    /* L3d5d */
+                if (sym != C_LBRKET)    /* L3d5d */
                 {
                     reprterr ("struct syntax");
                     break;
@@ -1098,7 +1098,7 @@ struct memberdef **lastmember;
                     nxt_word ();
                     Struct_Union = _old_struct;
 
-                    if (D005f == C_RBRKET)    /* else L3ee2 */
+                    if (sym == C_RBRKET)    /* else L3ee2 */
                     {
                         break;
                     }
@@ -1108,7 +1108,7 @@ struct memberdef **lastmember;
                     __mbr_fty = do_lblnam ( &_mmbrsiz, &v12, &_lst_sz);
 
                     /* At this point, __mbr_fty = FT_code for member variable
-                     * D005f contains C_type for the character or name
+                     * sym contains C_type for the character or name
                      */
 
                     while (1)
@@ -1118,7 +1118,7 @@ struct memberdef **lastmember;
 
                         l2 = v12;
 
-                        if (D005f == C_SEMICOLON)    /* else L3ecc */
+                        if (sym == C_SEMICOLON)    /* else L3ecc */
                         /* Done */
                         {
                             break;
@@ -1149,7 +1149,7 @@ struct memberdef **lastmember;
                             else
                             {
                                 /* copy regptr to G18Current, null regptr */
-                                null_lbldef (regptr);     /* L3e1f */
+                                pushdown (regptr);     /* L3e1f */
                             }
                         }
 
@@ -1200,7 +1200,7 @@ struct memberdef **lastmember;
                             v6 = nwstruct;
                         }
 L3ec1:
-                        if (D005f != C_COMMA)
+                        if (sym != C_COMMA)
                         {
                             break;
                         }
@@ -1209,7 +1209,7 @@ L3ec1:
                         continue;
 
                     }   /* End of while (1) loop */
-                } while (D005f == C_SEMICOLON);  /* L3ed8 */
+                } while (sym == C_SEMICOLON);  /* L3ed8 */
 
                 --Struct_Union;    /* L3ee2 */
 
@@ -1220,7 +1220,7 @@ L3ec1:
                     _strctdef->p10 = (int)(*lastmember);
                 }
 
-                lookfor (C_RBRKET);
+                need (C_RBRKET);
                 break;              /* End struct def */
         }
     }
@@ -1229,7 +1229,7 @@ L3ec1:
         /* typedef */
 
         /* L3f51 */
-        if ((D005f == C_USRLBL) && (((regptr = (LBLDEF *)LblVal)->fnccode) == FT_TYPEDEF))
+        if ((sym == C_USRLBL) && (((regptr = (LBLDEF *)LblVal)->fnccode) == FT_TYPEDEF))
         {
             *siz = regptr->vsize;
             *p2 = regptr->w4;
@@ -1284,30 +1284,30 @@ int ft_type;
 
     /* Get past any pointer states (if any) */
 
-    while (D005f == C_ASTERISK)    /* ??? Increase pointer count */
+    while (sym == C_ASTERISK)    /* ??? Increase pointer count */
     {
-        __ptrdpth = incptrdpth (__ptrdpth);
+        __ptrdpth = incref (__ptrdpth);
         nxt_word ();
     }
 
-    if (D005f == C_USRLBL)
+    if (sym == C_USRLBL)
     {
         *lbl_def = (LBLDEF *)LblVal;        /* variable name's LBLDEF * */
         nxt_word ();
     }
     else
     {
-        if (D005f == C_LPAREN)
+        if (sym == C_LPAREN)
         {
             nxt_word ();
             ++D0051;
             ft_type = L3f8a (lbl_def, p2, ft_type);      /* call self */
             --D0051;
-            lookfor (C_RPAREN);
+            need (C_RPAREN);
         }
     }
 
-    if (D005f == C_LPAREN)        /* else L4036 */
+    if (sym == C_LPAREN)        /* else L4036 */
     {
         __ptrdpth = ((__ptrdpth << 2) + 0x30);
 
@@ -1333,13 +1333,13 @@ int ft_type;
         _strctstate = Struct_Union;
         Struct_Union = 0;
 
-        while (D005f == C_LBRACE)     /* L409d */
+        while (sym == C_LBRACE)     /* L409d */
         {
             __ptrdpth = (__ptrdpth << 2) + 0x20;      /* L4049 */
             nxt_word ();
             __member = addmem (sizeof (struct bracedef));
 
-            if ((_bracdpth == 0) && (D005f == C_RBRACE))
+            if ((_bracdpth == 0) && (sym == C_RBRACE))
             {
                 ((struct bracedef *)(__member))->brCmd = 0;  
             }
@@ -1360,7 +1360,7 @@ int ft_type;
             /* bugfix 2008-04-08 15:03 */
             /* moved following line from inside preceding brace */
             v6 = (struct bracedef *)__member;
-            lookfor (C_RBRACE);
+            need (C_RBRACE);
             ++_bracdpth;
         }
 
@@ -1479,8 +1479,8 @@ register CMDREF *regptr;
         {
             v0 *= regptr->ft_Ty;    /* L41c2 */
             regptr = regptr->__cr2;
-        /*} while (((p1 = MSBrshft2 (p1)) & 0x30) == 0x20);*/
-        } while (inbraces (p1 = (MSBrshft2 (p1))));     /* FIXED I think */
+        /*} while (((p1 = decref (p1)) & 0x30) == 0x20);*/
+        } while (inbraces (p1 = (decref (p1))));     /* FIXED I think */
 
         return (v0 * ((ispointer (p1)) ? 2 : p2));
     }
@@ -1528,7 +1528,7 @@ LBLDEF **p1;
                     LblPtrLow) && (v62 < LblPtrEnd))  /* else L4289 */
         {
             /* Make regptr the base of the current LblTree ?? */
-            fill_g18 (regptr);      /* go to L42be */
+            pullup (regptr);      /* go to L42be */
         }
         else
         {

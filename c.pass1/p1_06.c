@@ -84,7 +84,7 @@ int p3;
         D000b = 1;
         nxt_word ();
 
-        if (D005f == C_DQUOT)        /* else L4507 */
+        if (sym == C_DQUOT)        /* else L4507 */
         {
             _lbl_nam = lblstruct->w4;
 
@@ -162,11 +162,11 @@ int readflg;
 
     if (!readflg)
     {
-        lookfor (C_LBRKET);
+        need (C_LBRKET);
     }
     else
     {
-        if (D005f == C_LBRKET)
+        if (sym == C_LBRKET)
         {
             v10 = 1;
             nxt_word ();
@@ -184,7 +184,7 @@ int readflg;
             v2 = -1;
         }
 
-        if ((v8 = MSBrshft2 (ftType)) == 4)     /* L45bd */
+        if ((v8 = decref (ftType)) == 4)     /* L45bd */
         {
             v4 = regptr->p10;
         }
@@ -197,11 +197,11 @@ int readflg;
 
         /* Process until a right bracket is found */
 
-        while (D005f != C_RBRKET)     /* L4616 */
+        while (sym != C_RBRKET)     /* L4616 */
         {
             if (L4570 (v8, regptr, v4, (readflg + 1))) /*L45e0*/ /*else L4748*/
             {
-                if ((++v6 >= v2) || (D005f != C_COMMA))
+                if ((++v6 >= v2) || (sym != C_COMMA))
                 {
                     break;
                 }
@@ -234,12 +234,12 @@ L465a:
             return 1;
         }
 
-        if (D005f == C_COMMA)
+        if (sym == C_COMMA)
         {
             nxt_word ();
         }
 
-        if (D005f == C_RBRKET)
+        if (sym == C_RBRKET)
         {
             nxt_word ();
             return 1;
@@ -260,7 +260,7 @@ L465a:
             return 0;
         }
 
-        while (D005f != C_RBRKET)
+        while (sym != C_RBRKET)
         {
             regptr = v0->vsize;    /* L46aa */
 
@@ -271,7 +271,7 @@ L465a:
                 return 0;
             }
 
-            if ((v0 = v0->gentyp) && (D005f == C_COMMA))       /* else L4713 */
+            if ((v0 = v0->gentyp) && (sym == C_COMMA))       /* else L4713 */
             {
                 nxt_word ();
                 continue;   /* not needed */
@@ -295,7 +295,7 @@ L465a:
     {
         if (v10)        /* else L4735 */
         {
-            lookfor (C_RBRKET);
+            need (C_RBRKET);
         }
 
         return 1;
@@ -414,7 +414,7 @@ L4827:
         L0393 (v6);
         v6 = regptr;
         regptr = regptr->cr_Left;
-        mak_curnt (v6);
+        release (v6);
     }
 
     /* L4860 */
@@ -554,7 +554,7 @@ find_sep ()
 {
     for (;;)
     {
-        switch (D005f)
+        switch (sym)
         {
             case C_COMMA:
             case C_SEMICOLON:
