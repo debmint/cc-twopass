@@ -9,6 +9,7 @@
  */
 
 #include <stdlib.h>
+#include "pass1.h"
 
 union data_tys {
         long l;
@@ -16,6 +17,12 @@ union data_tys {
         int i;
         char c[9];
 };
+typedef union {
+    INTTYPE *ip;
+    LONGTYPE *lp;
+    FLOATYPE *fp;
+    DBLETYPE *dp;
+} numptrs;
 
 #ifndef COCO
 #   ifndef direct
@@ -23,50 +30,48 @@ union data_tys {
 #   endif
 #endif
 
-extern direct int D000b;
+extern direct int datstring;
 extern char _chcodes[];
 
-#include "pass1.h"
+typedef union {
+    DBLETYPE *dpt;
+    LONGTYPE *lpt;
+    symnode * spt;
+} rgpts;
 
 /* ************************************************************ *
  * nxt_word() - Process a group of characters                   *
- *      Sets up sym and LblVal to appropriate codes            *
+ *      Sets up sym and symval to appropriate codes            *
  *      If it's a valid Label, finds label or creates an entry  *
  *      If number, retrieves it and sets it up                  *
  *      If assignment or operator, sets up definition for it    *
  * Exit conditions:                                             *
  *      Builtin:                                                *
  *        sym = C_* type                                      *
- *        LblVal = fnccode (FT_EXTERN if SIZEOF)                 *
+ *        symval = fnccode (EXTERN if SIZEOF)                 *
  *      User Defined Label:                                     *
- *        sym = C_USRLBL                                      *
- *        LblVal = ptr to LBLDEF struct for this variable        *
+ *        sym = NAME                                      *
+ *        symval = ptr to LBLDEF struct for this variable        *
  *      Numeric:                                                *
  *        sym = C_* type of number                            *
- *        LblVal = value itself if size <= sizeof (int)          *
+ *        symval = value itself if size <= sizeof (int)          *
  *                else ptr to the storage of the value          *
  *      Anything else:                                          *
  *        sym = C_* type                                      *
- *        LblVal = Info regarding any additional chars.  I.E.    *
+ *        symval = Info regarding any additional chars.  I.E.    *
  *                whether is is "+", "++", "+=", etc            *
  * ************************************************************ */
 
-#ifndef COCO
-
 void 
-nxt_word (void)
-#else
-
-void
 nxt_word ()
-#endif
 {
     /* 21 bytes of static variables */
 
-    int _ftcode;
-    union data_tys _buf;
-    double *_valptr;
-    double my_dbl;
+    register rgpts ptr;
+    int numtype;
+    char name[NAMESIZE + 1];
+    numptrs np;
+    DBLETYPE n;
 
     skipblank();
 
@@ -76,253 +81,249 @@ nxt_word ()
         return;
     }
 
-    D0063 = CurLine - 1;
-    D003f = fileline;
+    symptr = CurLine - 1;
+    symline = fileline;
 
-    while ((sym = _chcodes[CurChr]) == '\0')
+    while ((sym = _chcodes[(int)CurChr]) == '\0')
     {
         reprterr ("bad character");
         getnxtch ();
-        D0063 = CurLine;
+        symptr = CurLine;
     }
 
-    LblVal = _chcod_2[CurChr];
+    symval = _chcod_2[(int)CurChr];
 
     switch (sym)     /* at L5873 */
     {
-        /*register union data_tys *_treept;*/
-        register void *_treept;
 
-        case 0x6a:         /*alpha - must be label */   /* L5588 */
+        case LETTER:         /*alpha - must be label */   /* L5588 */
 
-            fget_lbl (_buf.c);     /* Read in label name from file */
-            _treept = FindLbl (_buf.c);
+            fget_lbl (name);     /* Read in label name from file */
+            ptr.spt = FindLbl (name);
 
-            /* gentyp = 51 ==> "builtin" ?? */
-
-            if ((sym = ((LBLDEF *)_treept)->gentyp) == C_BUILTIN)
+            if ((sym = (ptr.spt->type == KEYWORD)))
             {
                 /* All builtins except sizeof return unchanged */
 
-                if ((LblVal = ((LBLDEF *)_treept)->fnccode) == FT_SIZEOF)
+                if ((symval = (ptr.spt->storage == SIZEOF)))
                 {
-                   sym = C_SIZEOF;
-                   LblVal = FT_EXTERN;        /* 14 */
+                   sym = SIZEOF;
+                   symval = EXTERN;        /* 14 */
                 }
             }
             else
             {
-               sym = C_USRLBL;
-               LblVal = (int)_treept;
+               sym = NAME;
+               symval = (int)ptr.spt;
             }
 
             break;         /* return */
 
-        case 0x6b:                     /*digit */ /* L55c9 */
-            _ftcode = str2num (1, &(my_dbl));
+        case DIGIT:                     /*digit */ /* L55c9 */
+            numtype = number (INT, &n);
 L55dc:
-            _valptr = &(my_dbl);
+            np.dp = &n;
             
-            switch (_ftcode)
+            switch (numtype)
             {
-                case FT_INT:    /* 1 */     /* L55e8 */
-                    LblVal = *(int *)_valptr;
-                    sym = C_INTSQUOT;    /* '6' */
+                case INT:    /* 1 */     /* L55e8 */
+                    symval = *np.ip;
+                    sym = CONST;
                     break;
-                case FT_LONG:  /* 8 */    /* L55ed */
-                    _treept = addmem (sizeof (long));
-                    *(long *)_treept = *(long *)_valptr;
-                    LblVal = (int)_treept;
-                    sym = C_LONG;    /* 'J' */
+                case LONG:  /* 8 */    /* L55ed */
+                    ptr.lpt = addmem (sizeof (long));
+                    *ptr.lpt = *np.lp;
+                    symval = (int)(ptr.lpt);
+                    sym = LCONST;    /* 'J' */
                     break;
-                case FT_DOUBLE:    /* L5609 */
-                    _treept = addmem (sizeof (double));
-                    *(double *)_treept = *(double *)_valptr;
-                    LblVal = (int)_treept;
-                    sym = C_DOUBLE;    /* 'K' */
+                case DOUBLE:    /* L5609 */
+                    ptr.dpt = (double *)addmem (sizeof (double));
+                    *ptr.dpt = *np.dp;
+                    symval = (int)(ptr.dpt);
+                    sym = FCONST;    /* 'K' */
                     break;
                 default:   /* L5625 */
                     reprterr ("constant overflow");
-                    LblVal = 1;
-                    sym = C_INTSQUOT;        /* '6' */
+                    symval = 1;
+                    sym = CONST;        /* '6' */
                     break;
             }
 
             break;
 
-        case  0x68: /* ' (single quote)*/  /* L564e */
+        case  PRIME: /* ' (single quote)*/  /* L564e */
             do_squot ();
-            sym = C_INTSQUOT;
+            sym = CONST;
             break;
-        case  0x69: /* " (double quote) */ /* L5656 */
+        case  QUOTE: /* " (double quote) */ /* L5656 */
             do_dquot ();
-            sym = C_DQUOT;
+            sym = STRING;
             break;
         default:   /* L5661 */
             getnxtch ();
 
             switch (sym)
             {
-                case C_PERIOD: /* '.' */       /* L5669 */
+                case DOT: /* '.' */       /* L5669 */
                     if (_chcodes[CurChr] == 0x6b)  /* Digit */
                     {
-                        _ftcode = str2num (6, &my_dbl);
+                        numtype = number (DOUBLE, &n);
                         goto L55dc;
                     }
 
                     break;
 
-                case C_AMPERSAND:          /* L5691 */
+                case AMPER:          /* L5691 */
                     switch (CurChr)
                     {
                         case '&':          /* L5698 */
-                            sym = C_ANDAND;
+                            sym = DBLAND;
                             getnxtch ();
-                            LblVal = 5;
+                            symval = 5;
                             break;
                         case '=':        /* L56a5 */
-                            sym = C_ANDEQ;
-                            LblVal = 2;
+                            sym = ASSAND;
+                            symval = 2;
                             getnxtch ();   /* 2008/04/15 fix &= error??? */
                             break;
                     }
 
                     break;
-                case C_EQUAL:              /* L56bd */
+                case ASSIGN:              /* L56bd */
                     if (CurChr == '=')
                     {
-                        sym = C_EQEQ;
-                        LblVal = 9;
+                        sym = EQ;
+                        symval = 9;
                         getnxtch ();
                     }
 
                     break;
-                case C_VBAR:               /* L56d0 */
+                case OR:               /* L56d0 */
                     switch (CurChr)
                     {
                         case '|':          /* L56d7 */
-                            sym = C_OROR;
+                            sym = DBLOR;
                             getnxtch ();
-                            LblVal = 4;
+                            symval = 4;
                             break;
                         case '=':          /* L56e4 */
-                            sym = C_OREQ;    /* +80 */
+                            sym = ASSOR;    /* +80 */
                             getnxtch ();
-                            LblVal = 2;
+                            symval = 2;
                             break;
                     }
 
                     break;
-                case C_EXCLAM:              /* L5701 */
+                case NOT:              /* L5701 */
                     if (CurChr == '=')
                     {
-                        sym = C_NOTEQ;
+                        sym = NEQ;
                         getnxtch ();
-                        LblVal = 9;
+                        symval = 9;
                     }
                     
                     break;
-                case C_ASTERISK:             /* L5716 */
+                case STAR:             /* L5716 */
                     if (CurChr == '=')
                     {
-                        sym = C_X_EQ;
+                        sym = ASSMUL;
                         getnxtch ();
-                        LblVal = 2;
+                        symval = 2;
                     }
                     
                     break;
-                case C_SLASH:
-                case C_PERCENT:
-                case C_CARET:              /* L5723 */
+                case DIV:
+                case MOD:
+                case XOR:              /* L5723 */
                     if (CurChr == '=')
                     {
                         sym += 80;
                         getnxtch ();
-                        LblVal = 2;
+                        symval = 2;
                     }
                     
                     break;
-                case C_LT:                 /* L5733 */
+                case LT:                 /* L5733 */
                     switch (CurChr)
                     {
                         case '<':          /* L573a */
-                            sym = C_LSHIFT;
-                            LblVal = 11;
+                            sym = SHL;
+                            symval = 11;
                             getnxtch ();
 
                             if (CurChr == '=')
                             {
-                                sym = C_LSHEQ;   /* +80 */
-                                LblVal = 2;
+                                sym = ASSSHL;   /* +80 */
+                                symval = 2;
                                 getnxtch ();
                             }
                             
                             break;
                         case '=':          /* L575a */
-                            sym = C_LT_EQ;
-                            LblVal = 10;
+                            sym = LEQ;
+                            symval = 10;
                             getnxtch ();
                             break;
                     }
 
                     break;
-                case C_GT:                  /* L5772 */
+                case GT:                  /* L5772 */
                     switch (CurChr)
                     {
                         case '>':          /* L5779 */
-                            sym = C_RSHIFT;
-                            LblVal = 11;
+                            sym = SHR;
+                            symval = 11;
                             getnxtch ();
 
                             if (CurChr == '=')
                             {
-                                sym = C_RSH_EQ;  /*C_RSHFT + 80*/
-                                LblVal = 2;
+                                sym = ASSSHR;  /*C_RSHFT + 80*/
+                                symval = 2;
                                 getnxtch ();
                             }
 
                             break;
                         case '=':              /* L5799 */
-                            sym = C_GT_EQ;
-                            LblVal = 10;
+                            sym = GEQ;
+                            symval = 10;
                             getnxtch ();
                             break;
                     }
 
                     break;
-                case C_PLUS:                   /* L57b1 */
+                case PLUS:                   /* L57b1 */
                     switch (CurChr)
                     {
                         case '+':              /* L57b8 */
-                            sym = C_PLUSPLUS;
-                            LblVal = 14;
+                            sym = INCBEF;
+                            symval = 14;
                             getnxtch ();
                             break;
                         case '=':              /* L57c2 */
-                            sym = C_PLUSEQ;
-                            LblVal = 2;
+                            sym = ASSPLUS;
+                            symval = 2;
                             getnxtch ();
                             break;
                     }
 
                     break;
-                case C_MINUS:                  /* L57d9 */
+                case NEG:                  /* L57d9 */
                     switch (CurChr)
                     {
                         case '-':              /* L57e0 */
-                            sym = C_MINMINUS;
-                            LblVal = 14;
+                            sym = DECBEF;
+                            symval = 14;
                             getnxtch ();
                             break;
 
                         case '=':              /* L57ea */
-                            sym = C_MINEQU;  /* C_MINUS + 80 */
-                            LblVal = 2;
+                            sym = ASSMIN;  /* NEG + 80 */
+                            symval = 2;
                             getnxtch ();
                             break;
                         case '>':              /* L57f4 */
-                            sym = C_PTRREF;  /* "->" */
-                            LblVal = 15;
+                            sym = ARROW;  /* "->" */
+                            symval = 15;
                             getnxtch ();
                             break;
                     }
@@ -334,60 +335,53 @@ L55dc:
     }       /* end outer switch (sym) */
 }
 
-#ifndef COCO
-
 void 
-tblsetup (void)
-#else
-
-void
 tblsetup ()
-#endif
 {
-    register LBLDEF *regptr;
+    register symnode *regptr;
 
-    inizFTbl ("double", 6);
-    inizFTbl ("float", 5);
-    inizFTbl ("typedef", 30);
-    inizFTbl ("static", 15);
-    inizFTbl ("sizeof", 59);
-    inizFTbl ("int", 1);
+    inizFTbl ("double", DOUBLE);
+    inizFTbl ("float", FLOAT);
+    inizFTbl ("typedef", TYPEDEF);
+    inizFTbl ("static", STATIC);
+    inizFTbl ("sizeof", SIZEOF);
+    inizFTbl ("int", INT);
     Struct_Union = 1;
-    inizFTbl ("int", 1);
-    inizFTbl ("float", 5);
+    inizFTbl ("int", INT);
+    inizFTbl ("float", FLOAT);
     Struct_Union = 0;
-    inizFTbl ("char", 2);
-    inizFTbl ("short", 10);
-    inizFTbl ("auto", 13);
-    inizFTbl ("extern", 14);
-    inizFTbl ("direct", 33);
-    inizFTbl ("register", 16);
-    inizFTbl ("goto", 29);
-    inizFTbl ("return", 18);
-    inizFTbl ("if", 19);
-    inizFTbl ("while", 20);
-    inizFTbl ("else", 21);
-    inizFTbl ("switch", 22);
-    inizFTbl ("case", 23);
-    inizFTbl ("break", 24);
-    inizFTbl ("continue", 25);
-    inizFTbl ("do", 26);
-    inizFTbl ("default", 27);
-    inizFTbl ("for", 28);
-    inizFTbl ("struct", 4);
-    inizFTbl ("union", 3);
-    inizFTbl ("unsigned", 7);
-    inizFTbl ("long", 8);
+    inizFTbl ("char", CHAR);
+    inizFTbl ("short", SHORT);
+    inizFTbl ("auto", AUTO);
+    inizFTbl ("extern", EXTERN);
+    inizFTbl ("direct", DIRECT);
+    inizFTbl ("register", REG);
+    inizFTbl ("goto", GOTO);
+    inizFTbl ("return", RETURN);
+    inizFTbl ("if", IF);
+    inizFTbl ("while", WHILE);
+    inizFTbl ("else", ELSE);
+    inizFTbl ("switch", SWITCH);
+    inizFTbl ("case", CASE);
+    inizFTbl ("break", BREAK);
+    inizFTbl ("continue", CONTIN);
+    inizFTbl ("do", DO);
+    inizFTbl ("default", DEFAULT);
+    inizFTbl ("for", FOR);
+    inizFTbl ("struct", STRUCT);
+    inizFTbl ("union", UNION);
+    inizFTbl ("unsigned", UNSIGN);
+    inizFTbl ("long", LONG);
     
     regptr = FindLbl ("errno");
-    regptr->gentyp = 1;
-    regptr->fnccode = 14;
-    regptr->vsize = 2;
+    regptr->type = INT;
+    regptr->storage = EXTERN;
+    regptr->size = 2;
 
     regptr = FindLbl("lseek");
-    regptr->gentyp = 56;
-    regptr->fnccode = 12;
-    regptr->vsize = 4;
+    regptr->type = LONG | FUNCTION;
+    regptr->storage = EXTDEF;
+    regptr->size = 4;
 }
 
 /* ***************************************************************** *
@@ -395,22 +389,19 @@ tblsetup ()
  *      ( up to 8 chars), and set file position to end of the string *
  * ***************************************************************** */
 
-#ifndef COCO
-
 void
+#ifndef COCO
 fget_lbl (register char *_dst)
 #else
-
-void 
 fget_lbl (_dst)
-register char *_dst;
+    register char *_dst;
 #endif
 {
     int _strln;
 
     _strln = 1;
 
-    while (islblchr (CurChr) && (_strln <= 8))
+    while (islblchr (CurChr) && (_strln <= NAMESIZE))
     {
         *(_dst++) = CurChr;
         getnxtch ();
@@ -419,7 +410,7 @@ register char *_dst;
 
     if (_strln == 2)
     {
-        *(_dst++) = '_';
+        *(_dst++) = UNIQUE;
     }
     
     *_dst = '\0';
@@ -453,7 +444,7 @@ int pos;
     {
         return 0;
     }*/
-    return ((_chcodes[pos] == '\x6a') || (_chcodes[pos] == '\x6b'));
+    return ((_chcodes[pos] == LETTER) || (_chcodes[pos] == DIGIT));
 }
 
 /* *********************************************** *
@@ -462,91 +453,86 @@ int pos;
  *      found                                      *
  * *********************************************** */
 
+symnode *
 #ifndef COCO
-
-LBLDEF *
-FindLbl ( char *fnc)
+FindLbl ( char *name)
 #else
-LBLDEF *
-FindLbl ( fnc)
-char *fnc;
+FindLbl ( name)
+    char *name;
 #endif
 {
-    LBLDEF **_fnclst;
-    LBLDEF **_fncbase;
+    symnode **tptr;
+    symnode **tab;
     int v0;
 
-    register LBLDEF *_myfnc;
+    register symnode *nptr;
 
     /* The tree is divided up into two 128-byte trees
      * StrctLbls for structure/union labels, and NStrLbls for all the rest
      */
 
-    _fncbase = (Struct_Union ? StrctLbls : NStrLbls);
+    tab = (Struct_Union ? StrctLbls : NStrLbls);
 
-    _fnclst = &(_fncbase[str_sum (fnc)]);   /* "lsl d" type thing */
-    _myfnc = *(_fnclst);
+    tptr = &tab[str_sum (name)];   /* "lsl d" type thing */
+    nptr = *(tptr);
 
     /* Search the list for a match, return entry if found */
 
-    while (_myfnc)
+    while (nptr)
     {
-        if ((_myfnc->fnam)[0] == fnc[0])    /* first chr of name match? */
+        if ((nptr->sname)[0] == name[0])    /* first chr of name match? */
         {
-            if (!strncmp (fnc, _myfnc->fnam, 8)) /* Check complete name */
+            if (!strncmp (name, nptr->sname, NAMESIZE))
             {
-                return _myfnc;                  /* Found it... return */
+                return nptr;                  /* Found it... return */
             }
         }
 
-        _myfnc = _myfnc->fnext;
+        nptr = nptr->hlink;
     }
 
-    if ((_myfnc = D0019) != 0)
+    if ((nptr = freesym) != 0)
     {
-        D0019 = _myfnc->fnext;
+        freesym = nptr->hlink;
     }
     else
     {
-        _myfnc = addmem (sizeof (LBLDEF));
+        nptr = addmem (SYMSIZE);
     }
 
-    strncpy (_myfnc->fnam, fnc, 8);
-    _myfnc->gentyp = 0;
-    _myfnc->fnccode = 0;
+    strncpy (nptr->sname, name, NAMESIZE);
+    nptr->type = 0;
+    nptr->storage = 0;
 
     /* This entry will be inserted as the "first" entry in the list.
-     * I. E. the base will point to this entry, this entry's ->fnext
+     * I. E. the base will point to this entry, this entry's ->hlink
      * will point to the previous "first"
      */
 
-    _myfnc->fnext = *(_fnclst);
-    *(_fnclst) = _myfnc;
-    _myfnc->ftop = _fnclst;     /* quick trip to the top? */
+    nptr->hlink = *tptr;
+    *tptr = nptr;
+    nptr->downptr = (symnode *)tptr;     /* quick trip to the top? */
 
-    return _myfnc;
+    return nptr;
 }
 
-#ifndef COCO
-
 void
-inizFTbl (char *name, int val)
+#ifndef COCO
+inizFTbl (char *name, int type)
 #else
-
-void 
-inizFTbl (name, val)
-char *name;
-int val;
+inizFTbl (name, type)
+    char *name;
+    int type;
 #endif
 {
-    char _lblnam[9];
-    register LBLDEF *_ftbl;
+    char neword[NAMESIZE + 1];
+    register symnode *_ftbl;
 
-    strncpy (_lblnam, name, 8);
-    _lblnam[8] = '\0';
-    _ftbl = FindLbl (_lblnam);
-    _ftbl->gentyp= C_BUILTIN;
-    _ftbl->fnccode = val;
+    strncpy (neword, name, NAMESIZE);
+    neword[NAMESIZE] = '\0';
+    _ftbl = FindLbl (neword);
+    _ftbl->type= KEYWORD;
+    _ftbl->storage = type;
 }
 
 /* ***************************************** *
@@ -554,15 +540,12 @@ int val;
  *          of characters in a string        *
  * ***************************************** */
 
-#ifndef COCO
-
 unsigned int
+#ifndef COCO
 str_sum (register char *nam)
 #else
-
-unsigned int 
 str_sum (nam)
-register char *nam;
+    register char *nam;
 #endif
 {
     unsigned int _sum;
@@ -578,15 +561,12 @@ register char *nam;
     return (_sum & 0x7f);
 }
 
-#ifndef COCO
-
 void *
+#ifndef COCO
 addmem (int siz)
 #else
-
-void *
 addmem (siz)
-int siz;
+    int siz;
 #endif
 {
 #ifdef COCO
@@ -619,15 +599,14 @@ int siz;
 
 
 /* ******************************************************** *
- * str2num() - reads in a string from the file and converts *
+ * number() - reads in a string from the file and converts *
  *      it to the appropriate number value                  *
  * Returns: the FT_* type on success, 0 on failure          *
  * ******************************************************** */
-
 #ifndef COCO
 
 int
-str2num (int p1, void *dest_val)
+number (int p1, void *dest_val)
 {
     /* Copy source string to local storage.  This will keep
      * all global pointers updated correctly
@@ -681,7 +660,7 @@ str2num (int p1, void *dest_val)
     {
         *((double **)dest_val) = malloc (sizeof (double));
         **((double **)dest_val) = strtod (_tmpstr, &_endptr);
-        return FT_DOUBLE;
+        return DOUBLE;
     }
 
     /**(long *)dest_val = (int)strtol (_tmpstr, &_endptr, 0);*/
@@ -691,21 +670,21 @@ str2num (int p1, void *dest_val)
         *((long **)dest_val) = malloc (sizeof (long));
         **((long **)dest_val) = strtol (_tmpstr, &_endptr, 0);
         getnxtch ();
-        return FT_LONG;
+        return LONG;
     }
     else
     {
         *((int *)dest_val) = (int)strtol (_tmpstr, &_endptr, 0);
-        return FT_INT;
+        return INT;
     }
 }
 
 #else
 
 int 
-str2num (p1, dest_val)
-int p1;
-register double *dest_val;
+number (p1, dest_val)
+    int p1;
+    register double *dest_val;
 {
     double _number;
     int _expon;
@@ -718,7 +697,7 @@ register double *dest_val;
 
     nptr = (char *)(&_number);
 
-    if (p1 == 6)
+    if (p1 == DOUBLE)
     {
         goto do_decimal;
     }
@@ -773,12 +752,12 @@ register double *dest_val;
         if ((*(int *)_xo_numptr) == 0)        /*L5d5c*/
         {
             *(int *)dest_val = (int)_my_nmbr;
-            return FT_INT;
+            return INT;
         }
 
 retrnlong:
         *(long *)dest_val = _my_nmbr;
-        return FT_LONG;
+        return LONG;
     }
 
     /* The following is a modified (?) version of atof
@@ -786,7 +765,7 @@ retrnlong:
      * we'll try to use std library routines
      */
 
-    while (_chcodes[CurChr] == 0x6b)    /* digit */      /*L5d96 */
+    while (_chcodes[CurChr] == 0x6b)    /* isdigit(CurChr) */      /*L5d96 */
     {
         if (L549c (&(_number), CurChr))     /* else L5dda ?????? */
         {
@@ -858,7 +837,7 @@ do_decimal:
         nptr[7] = -v2;                    /*L5e75*/
         nptr[0] &= 0x7f;
         *(double *)dest_val = _number;
-        return FT_DOUBLE;
+        return DOUBLE;
     }
 
     /*L5e95*/
@@ -876,7 +855,7 @@ do_decimal:
 retlong2:
         e0 = &((nptr)[3]);
         *(long *)dest_val = *(long *)e0;
-        return FT_LONG;
+        return LONG;
     }
 
     /*L5ed5*/
@@ -897,31 +876,24 @@ retlong2:
         /*dest_val->i = *(b0.ip);*/
         *(int *)dest_val = *(b0.ip);
 
-        return FT_INT;
+        return INT;
     }
 }
 #endif
 
-#ifndef COCO
-
 void 
-do_squot (void)
-#else
-
-void
 do_squot ()
-#endif
      /* L5f00 */
 {
     getnxtch ();
 
     if (CurChr == '\\')
     {
-        LblVal = dobkslsh ();
+        symval = dobkslsh ();
     }
     else
     {
-        LblVal = CurChr;
+        symval = CurChr;
         getnxtch();
     }
 
@@ -945,7 +917,7 @@ void
 do_dquot ()
 #endif
 {
-    switch (D000b)
+    switch (datstring)
     {
         case 0:     /* L5f36 */
         case 2:
@@ -963,19 +935,19 @@ do_dquot ()
             strsFP = outpth;
     }
 
-    D0017 = 0;
+    stringlen = 0;
 
-    if (D000b != 1)
+    if (datstring != 1)
     {
         putc ('l', strsFP);  /* 108 = $6c */
 #ifdef COCO
-        putword ((LblVal = ++LblNum), strsFP);
+        putword ((symval = ++LblNum), strsFP);
 #else
         /* The putword macro increments LblNum twice if this
          * is all done in one step
          */
 
-        LblVal = ++LblNum;
+        symval = ++LblNum;
         putword (LblNum, strsFP);
 #endif
     }
@@ -1006,19 +978,16 @@ do_dquot ()
     }
 
     putc ('\0', strsFP);
-    ++D0017;
+    ++stringlen;
     getnxtch();
 }
 
-#ifndef COCO
-
 void
+#ifndef COCO
 addstrchr (int p1)
 #else
-
-void 
 addstrchr (p1)
-int p1;
+    int p1;
 #endif
 {
     if ((p1 == 0) || (p1 == '\\'))
@@ -1027,31 +996,25 @@ int p1;
     }
 
     putc ( p1, strsFP);
-    ++D0017;
+    ++stringlen;
 }
 
-#ifndef COCO
-
 void
+#ifndef COCO
 prnt_rzb (int valu)
 #else
-
-void 
 prnt_rzb (valu)
-int valu;
+    int valu;
 #endif
 {
     prntstar ();
     fprintf (strsFP, " rzb %d\n", valu);
 }
 
-#ifndef COCO
-
 int 
+#ifndef COCO
 dobkslsh (void)
 #else
-
-int
 dobkslsh ()
 #endif
 {

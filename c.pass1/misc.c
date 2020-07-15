@@ -184,7 +184,7 @@ reprterr (_str)
 char *_str;
 #endif
 {
-    doerr (D0063 - inpbuf, _str, D003f);
+    doerr (symptr - inpbuf, _str, symline);
 }
 
 void
@@ -304,24 +304,24 @@ char ch;
 
 void
 #ifndef COCO
-L0393 (register expnode *tree)
+reltree (register expnode *tree)
 #else
-L0393 (tree)
+reltree (tree)
     register expnode *tree;
 #endif
 {
     if (tree)
     {
-        L0393 (tree->left);
-        L0393 (tree->right);
+        reltree (tree->left);
+        reltree (tree->right);
         release (tree);
     }
 }
 
 /* **************************************************** *
  * release () - Makes the CMDREF passed the current   *
- *      cmd.  Moves the CMDREF in D002d to its Prev     *
- *      and stores this CMDREF into D002d               *
+ *      cmd.  Moves the CMDREF in freenode to its Prev     *
+ *      and stores this CMDREF into freenode               *
  * **************************************************** */
 
 void
@@ -334,8 +334,8 @@ release (p1)
 {
     if (p1)
     {
-        p1->left = D002d;
-        D002d = p1;
+        p1->left = freenode;
+        freenode = p1;
     }
 }
 
@@ -365,7 +365,7 @@ istype ()
 {
     if (sym == C_BUILTIN)    /* else L0428 */
     {
-        switch (LblVal)
+        switch (symval)
         {
             case FT_INT:
             case FT_CHAR:
@@ -385,7 +385,7 @@ istype ()
     {
         if (sym == C_USRLBL)        /* else _67 (L04c8) */
         {
-            if (((symnode *)LblVal)->storage == FT_TYPEDEF)
+            if (((symnode *)symval)->storage == FT_TYPEDEF)
             {
                 return 1;
             }
@@ -405,7 +405,7 @@ issclass()
 {
     if (sym == C_BUILTIN)
     {
-        switch (LblVal)
+        switch (symval)
         {
             case FT_EXTERN:
             case FT_AUTO:
@@ -458,20 +458,15 @@ register int p1;
     return 0;
 }
 
-int
+dimnode *
 #ifndef COCO
-L04b0 (register int *p1)
+dimwalk (register dimnode *dptr)
 #else
-L04b0 (p1)
-    register int *p1;
+dimwalk (dptr)
+    register dimnode *dptr;
 #endif
 {
-    if (p1)
-    {
-        return p1[1];
-    }
-        
-    return 0;
+    return dptr ? dptr->dptr : 0;
 }
 
 /* ************************************************ *

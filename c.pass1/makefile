@@ -12,19 +12,19 @@ $(RDIR)/%.r: %.a
 #CFLAGS = -dCOCO -v=/dd/defs
 CFLAGS = -dCOCO
 PROG = c.pass1
-OBJS = misc.r p1_02.r p1_03.r p1_04.r p1_05.r p1_06.r \
-	   p1_07.r printf.r pp8.r p1_08.r p1_09.r p1_10.r pf.r cmain.r
+OBJS = misc.r build.r optim.r stats.r declare.r inits.r \
+	   p1_07.r printf.r pp8.r lex.r get.r local.r pf.r cmain.r
 
-RELS = $(RDIR)/misc.r $(RDIR)/p1_02.r $(RDIR)/p1_03.r $(RDIR)/p1_04.r \
-	   $(RDIR)/p1_05.r $(RDIR)/p1_06.r $(RDIR)/p1_07.r printf.r \
-	   $(RDIR)/pp8.r $(RDIR)/p1_08.r $(RDIR)/p1_09.r $(RDIR)/p1_10.r \
+RELS = $(RDIR)/misc.r $(RDIR)/build.r $(RDIR)/optim.r $(RDIR)/stats.r \
+	   $(RDIR)/declare.r $(RDIR)/inits.r $(RDIR)/p1_07.r printf.r \
+	   $(RDIR)/pp8.r $(RDIR)/lex.r $(RDIR)/get.r $(RDIR)/local.r \
 	   $(RDIR)/pf.r $(RDIR)/cmain.r
 
-STKS = $(RDIR)/p1_02.r $(RDIR)/p1_03.r $(RDIR)/p1_04.r \
-	   $(RDIR)/p1_05.r $(RDIR)/p1_06.r $(RDIR)/p1_07.r  \
-	   $(RDIR)/pp8.r $(RDIR)/p1_08.r $(RDIR)/pf.r
+STKS = $(RDIR)/build.r $(RDIR)/optim.r $(RDIR)/stats.r \
+	   $(RDIR)/declare.r $(RDIR)/inits.r $(RDIR)/p1_07.r  \
+	   $(RDIR)/pp8.r $(RDIR)/lex.r $(RDIR)/pf.r
 
-NOSTK = $(RDIR)/misc.r $(RDIR)/p1_09.r $(RDIR)/p1_10.r $(RDIR)/cmain.r \
+NOSTK = $(RDIR)/misc.r $(RDIR)/get.r $(RDIR)/local.r $(RDIR)/cmain.r \
 		$(RDIR)/printf.r
 
 $(PROG): $(STKS) $(NOSTK)

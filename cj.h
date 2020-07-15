@@ -452,5 +452,3 @@ typedef struct {
 extern  expnode *parsexp(), *primary(), *explist(), *getcast(),
                 *newnode(), *optim(), *fold(), *chtype(), *fixup(),
                 *tranexp(), *tranbool(), *treecopy();
-
-extern  dimnode *dimwalk();

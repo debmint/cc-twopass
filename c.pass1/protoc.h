@@ -1,4 +1,17 @@
-/* p1_01.c */
+/* build.c */
+expnode *parsexp();
+expnode *L0694();
+expnode *explist();
+int constexp();
+int isop();
+int constop();
+expnode *getcast();
+expnode *newnode();
+void exprmsng();
+/* cmain.c */
+int main();
+void quit_cc();
+/* misc.c */
 void pushdown();
 void pullup();
 void mem_cp();
@@ -12,7 +25,7 @@ void doerr();
 void displerr();
 void e_putlin();
 void e_putc();
-void L0393();
+void reltree();
 void release();
 void nodecopy();
 int istype();
@@ -23,19 +36,8 @@ int isbin();
 int L04b0();
 int need();
 void junk();
-/* p1_02.c */
-CMDREF *L0580();
-CMDREF *L0694();
-CMDREF *L09f4();
-CMDREF *L0a4f();
-int is_math();
-int do_math();
-CMDREF *L0d47();
-CMDREF *add_cmdref();
-void exprmsng();
-int L0e29();
 /* p1_03.c */
-CMDREF *L0f18();
+expnode *optim();
 CMDREF *L1005();
 int L1323();
 void divby_0();
@@ -74,7 +76,7 @@ LBLDEF *L30e7();
 LBLDEF *L310e();
 void L3140();
 /* p1_05.c */
-void L3227();
+void extdef();
 void L34d6();
 void L3628();
 int declrcmp();
@@ -82,17 +84,17 @@ int L38af();
 int dofunction();
 void L3a4c();
 int do_parentheses();
-int getSC_word();
-int do_lblnam();
+int setclass();
+int settype();
 int L3f8a();
 int L40ca();
-int L4100();
-int L418a();
-int L4204();
+int sizeup();
+int getsize();
+void L4204();
 int sizundef();
 int noidentf();
 /* p1_06.c */
-int L4432();
+int initialize();
 int L4570();
 void L474e();
 int L4772();
@@ -112,7 +114,7 @@ void prtlcllbl();
 void wrtunderscore();
 void prtlbnm();
 int wrt_M();
-void prt_4b5e();
+void gen();
 void prntstar();
 void prntfnam();
 CMDREF *prt_4c1b();
@@ -166,9 +168,6 @@ void putc_e();
 int seek0_FP();
 void dumpstrs();
 void quitcc();
-/* p1_11.c */
-int main();
-void quit_cc();
 /* printf.c */
 int printf();
 int fprintf();

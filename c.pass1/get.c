@@ -12,15 +12,8 @@ extern char _chcodes[];
 
 /* initbuf0() - startup routine to initialize certain buffers */
 
-#ifndef COCO
-
 void
-initbuf0 (void)
-#else
-
-void 
 initbuf0 ()
-#endif
 {
     CurLine = inpbuf;
     inpbuf[0] = '\0';
@@ -31,15 +24,8 @@ initbuf0 ()
  * skipblank () a getnxtch() function that bypasses whitespaces  *
  * ************************************************************* */
 
-#ifndef COCO
-
 void 
-skipblank (void)
-#else
-
-void
- skipblank ()
-#endif
+skipblank ()
 {
     while ((CurChr == ' ') || (CurChr == '\t'))
     {
@@ -52,15 +38,8 @@ void
  *    gets next applicable line if current line is exhausted..       *
  * ***************************************************************** */
 
-#ifndef COCO
-
 void
-getnxtch (void)
-#else
-
-void 
 getnxtch ()
-#endif
 {
     if ((CurChr = *(CurLine++)) == '\0')
     {
@@ -73,15 +52,8 @@ getnxtch ()
  *           "#".                                             *
  * ********************************************************** */
 
-#ifndef COCO
-
 char
-prepln (void)
-#else
-
-char 
 prepln ()
-#endif
 {
     int v6;
     int _prepcod;
@@ -285,8 +257,8 @@ gtnxtlin ()
         }
     }
 
-    D003f = ++fileline;
-    D0063 = inpbuf;
+    symline = ++fileline;
+    symptr = inpbuf;
     fatal ("input line too long");
 }
 

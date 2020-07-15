@@ -1,9 +1,14 @@
 * cstart stuff
 
+initlist equ 5 D
+initlast equ 7 D
 SomeCurnt equ 9 D
+datstring equ $0b D
+datflag equ $0d D
 LJust equ $11 D
 FillChar equ $13 D
 DestFlg equ $15 D
+stringlen equ $17 D
 strsFP equ $1b D
 srcfile equ $1f D
 edition equ $21 D
@@ -12,15 +17,20 @@ outpth equ $25 D
 fileline equ $027 D
 ErrCount equ $29 D
 LblNum equ $2b D
+sp equ $2f D
+stlev equ $31 D
 nostkck equ $35 D
 doprofil equ $37 D
 modname equ $39 D
 Struct_Union equ $41 D
 G18Current equ $43 D
-CaseList equ $59 D
-CaseNow equ $5b D
-sym eqy $5f D
-LblVal equ $61 D
+freecase equ $45 D
+ftype equ $4d D
+swflag equ $57 D
+caseptr equ $59 D
+lastcase equ $5b D
+sym equ $5f D
+symval equ $61 D
 CurChr equ $65 D
 LblPtrLow equ $66 D
 LblPtrEnd equ $68 D
@@ -30,6 +40,7 @@ xexpcted equ $76 D
 _chcodes equ $89 D
 
 _chcod_2 equ $0109 D
+sdummy equ $018b L
 dummynm equ $01a7 D
 cstrtmp equ $01a9 D
 stdin equ $01b4 D
@@ -41,10 +52,10 @@ argv equ $284 D
 argc equ $2c0 D
 memend equ $2c4 D
 _stktop equ $02c2 D
-_stbot equ $02d0 D
-_mtop equ $02ce D
-errno equ $02d2 D
 _flacc equ $02c6 D
+_mtop equ $02ce D
+_stbot equ $02d0 D
+errno equ $02d2 D
 
 CurFilNam equ $03ee D
 NStrLbls equ $040c D
@@ -91,6 +102,7 @@ displerr equ $034a L
 e_putlin equ $0365 L
 e_putc equ $037f L
 
+reltree equ $0393 L
 release equ $03b4 L
 istype equ $03da L
 
@@ -98,12 +110,16 @@ issclass equ $043c L
 decref equ $0477 L
 incref equ $0483 L
 isbin equ $049b L
+dimwalk equ $04b0 L
 
 junk equ $04ff L
 need equ $04bc L
+parsexp equ $0580 L
+explist equ $09f4 L
 
+constexp equ $0a4f L
 is_math equ $0a9b L
-do_math equ $0b21 L
+constop equ $0b21 L
 addem equ $0b2e L
 subtract equ $0b34 L
 multiply equ $0b3a L
@@ -128,18 +144,28 @@ neit_nul equ $0c1d L
 
 retrn0 equ $0c8f L
 retrn1 equ $0c91 L
-add_cmdref equ $0dd3 L
+newnode equ $0dd3 L
 exprmsng equ $0e15 L
+optim equ $0f18 L
 
+fold equ $1005 L
+isleaf equ $1323 L
+chtype equ $1382 L
 divby_0 equ $136d L
 brk_1f6b equ $1f6b L
+cknull equ $1f8e L
 cktypnumeric equ $1fbc L
 do_cast equ $2027 L
+tymatck equ $2340 L
+fixup equ $23c4 L
+chkdecl equ $2463 L
 ck_declared equ $24d3 L
+needmos equ $2502 L
 get_ftty equ $25b5 L
+makedummy equ $25e6 L
 iswordorlong equ $262d L
 notintegral equ $265c L
-do_loops equ $27d0 L
+statement equ $27d0 L
 
 do_if equ $2917 L
 do_while equ $29da L
@@ -153,15 +179,31 @@ do_retrn equ $2e93 L
 do_break equ $2f21 L
 do_goto equ $2f9e L
 do_contin equ $2f60 L
+dolabel equ $2fe9 L
 
+checklabel equ $302b L
+sidexp equ $3082 L
+emit equ $30ab L
+getptest equ $30e7 L
+gettest equ $310e L
+dotest equ $3140 L
+extdef equ $3227 L
+argdef equ $34d6 L
+blkdef equ $3628 L
 declrcmp equ $387b L
-dofunction equ $3904 L
-do_parentheses equ $3b5a L
-getSC_word equ $3be6 L
-do_lblnam equ $3c35 L
+chkreg equ $38af L
+newfunc equ $3904 L
+block equ $3a4c L
+declist equ $3b5a L
+setclass equ $3be6 L
+settype equ $3c35 L
+declarator equ $3f8a L
+shiftin equ #40ca L
 sizundef equ $42d1 L
 noidentf equ $42df L
+defobject equ $4772 L
 
+datdef equ $4913 L
 cant_init equ $497d L
 find_sep equ $4994 L
 wrt_M equ $4b30 L
@@ -176,10 +218,10 @@ prntCR equ $4a74 L
 printchr equ $4a85 L
 prntstring equ $4a9b L
 prntdgt equ $4ab1 L
-prntw_l equ $4ac4 L
+uselabel equ $4ac4 L
 prtlcllbl equ $4ae8 L
 wrtunderscore equ $4b01 L
-prt_4b5e equ $4b5e L
+gen equ $4b5e L
 prt_4c1b equ $4c1b L
 prt_4c2c equ $4c2c L
 prt_4c4f equ $4c4f L
@@ -210,7 +252,7 @@ tblsetup equ $5897 L
 FindLbl equ $5b33 L
 inizFTbl equ $5bd5 L
 addmem equ $5c27 L
-str2num equ $5c59 L
+number equ $5c59 L
 retrnlong equ $5d6b L
 do_squot equ $5f00 L
 do_dquot equ $5f30 L

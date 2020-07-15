@@ -19,31 +19,22 @@
 #   include <unistd.h>
 #endif
 
-#ifndef COCO
-
 void
-dumpstrings (void)
-#else
-
-void 
 dumpstrings ()
-#endif
 {
     dumpstrs ();
     putc_e ();
 }
 
-#ifndef COCO
 
 void
+#ifndef COCO
 rmbnolbl (int p1, int valu, int p3)
 #else
-
-void 
 rmbnolbl (p1, valu, p3)
-int p1;
-int valu;
-int p3;
+    int p1;
+    int valu;
+    int p3;
 #endif
 {
     wdataflag (p3);
@@ -53,17 +44,14 @@ int p3;
     putc_e ();
 }
 
-#ifndef COCO
-
 void
-globldata (LBLDEF *p1, int p2, int p3)
+#ifndef COCO
+globldata (symnode *p1, int p2, int p3)
 #else
-
-void 
 globldata (p1, p2, p3)
-LBLDEF *p1;
-int p2;
-int p3;
+    symnode *p1;
+    int p2;
+    int p3;
 #endif
 {
     wdataflag (p3);
@@ -71,15 +59,14 @@ int p3;
     putc_e ();
 }
 
-#ifndef COCO
-
 void
-localdata (LBLDEF *p1, int p2, int p3)
+#ifndef COCO
+localdata (symnode *p1, int p2, int p3)
 #else
 localdata (p1, p2, p3)
-LBLDEF *p1;
-int p2;
-int p3;
+    symnode *p1;
+    int p2;
+    int p3;
 #endif
 {
     wdataflag (p3);
@@ -87,31 +74,28 @@ int p3;
     putc_e ();
 }
 
+void
 #ifndef COCO
-
-lbl_rmb (LBLDEF *p1, int p2, char _colon)
+lbl_rmb (symnode *p1, int p2, char _colon)
 #else
 lbl_rmb (p1, p2, _colon)
-LBLDEF *p1;
-int p2;
-char _colon;
+    symnode *p1;
+    int p2;
+    char _colon;
 #endif
 {
     prntstar ();
-    fprintf (outpth, "%.8s%c rmb %d\n", p1->fnam, _colon, p2);
+    fprintf (outpth, "%.8s%c rmb %d\n", p1->sname, _colon, p2);
 }
 
-#ifndef COCO
-
 void
+#ifndef COCO
 prtstkchk (char *funcnam, int p2, int p3)
 #else
-
-void 
 prtstkchk (funcnam, p2, p3)
-char *funcnam;
-int p2;
-int p3;
+    char *funcnam;
+    int p2;
+    int p3;
 #endif
 {
     putc ('S', outpth); /* 0x53 */
@@ -135,16 +119,13 @@ int p3;
     }
 }
 
-#ifndef COCO
-
 void
+#ifndef COCO
 prtprofil (char *p1, int p2)
 #else
-
-void 
 prtprofil (p1, p2)
-char *p1;
-int p2;
+    char *p1;
+    int p2;
 #endif
 {
     printchr ('p');     /* 0x70 */
@@ -152,15 +133,8 @@ int p2;
     fprintf (outpth, "%.8s%c", p1, 0);
 }
 
-#ifndef COCO
-
 void
-flgstkchk(void)
-#else
-
-void 
 flgstkchk ()
-#endif
 {
     if (!nostkck)
     {
@@ -168,43 +142,22 @@ flgstkchk ()
     }
 }
 
-#ifndef COCO
-
 void
-prnt_fcb (void)
-#else
-
-void 
 prnt_fcb ()
-#endif
 {
     prntstar ();
     prtspstr ("fcb ");
 }
 
-#ifndef COCO
-
 void
-prnt_fdb (void)
-#else
-
-void 
 prnt_fdb ()
-#endif
 {
     prntstar ();
     prtspstr ("fdb ");
 }
 
-#ifndef COCO
-
 void
-pr2stars (void)
-#else
-
-void 
 pr2stars ()
-#endif
 {
     prntstar ();
     prntstring ("* ");
@@ -215,12 +168,10 @@ pr2stars ()
  * Passed: 1 if DP else 0                                        *
  * ************************************************************* */
 
-#ifndef COCO
-
-void wdataflag (int p1)
-#else
-
 void 
+#ifndef COCO
+wdataflag (int p1)
+#else
 wdataflag (p1)
 int p1;
 #endif
@@ -235,13 +186,10 @@ int p1;
     }
 }
 
-#ifndef COCO
-
 void
+#ifndef COCO
 putc_e (void)
 #else
-
-void 
 putc_e ()
 #endif
 {
@@ -253,12 +201,10 @@ putc_e ()
  *          current data, it seems                          *
  * ******************************************************** */
 
-#ifndef COCO
-
 int
+#ifndef COCO
 seek0_FP (FILE *_fp)
 #else
-int
 seek0_FP (_fp)
 FILE *_fp;
 #endif
@@ -270,7 +216,6 @@ FILE *_fp;
 #ifdef COCO
     /* Set buffer ptr to end of buffer */   /* fixed ??? */
     _fp->_ptr = _fp->_end = &(_fp->_base[_fp->_bufsiz]);
-    /*_fp->_flag &= 0xfeef;*/   /*!( _EOF | _WRITTEN) */
     _fp->_flag &= ~( _EOF | _WRITTEN);
     lseek (fileno (_fp), 0l, 0);
     /* we need only the LS word */
@@ -282,15 +227,8 @@ FILE *_fp;
 #endif
 }
 
-#ifndef COCO
-
 void
-dumpstrs (void)
-#else
-
-void 
 dumpstrs ()
-#endif
 {
     if (stmpFP)
     {
@@ -326,15 +264,8 @@ L694d: fcc "dumpstrings"
     }
 }
 
-#ifndef COCO
-
 void
-quitcc (void)
-#else
-
-void 
 quitcc ()
-#endif
  
 {
     int v0 = (errno ? errno : 1);

@@ -101,7 +101,7 @@ L6b64:
 
     while (sym != -1)
     {
-        L3227 ();
+        extdef ();
     }
 
     dumpstrings ();

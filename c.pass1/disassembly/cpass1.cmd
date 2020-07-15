@@ -12,7 +12,10 @@ A 0123-013b
 
 * End of cstart
 
+" D 03 'End DPInit - Begin NonDp Init'
 " D 76 ' Begin of non-dp data'
+" D 284 ' End of Non-DP Init Data'
+" D 53 'Defined in stats.c'
 
 * Define ALL chcode values for D005f here
 
