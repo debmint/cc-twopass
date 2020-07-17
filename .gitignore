@@ -1,0 +1,4 @@
+*.o
+*.r
+build/unix/pass1/c.pass1
+build/unix/pass2/c.pass2
