@@ -26,6 +26,8 @@ Struct_Union equ $41 D
 G18Current equ $43 D
 freecase equ $45 D
 ftype equ $4d D
+lastst qu $4f D
+contptr equ $55 D
 swflag equ $57 D
 caseptr equ $59 D
 lastcase equ $5b D
@@ -56,6 +58,7 @@ _flacc equ $02c6 D
 _mtop equ $02ce D
 _stbot equ $02d0 D
 errno equ $02d2 D
+deflabel equ $02d4 D
 
 CurFilNam equ $03ee D
 NStrLbls equ $040c D

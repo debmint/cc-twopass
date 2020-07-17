@@ -594,7 +594,7 @@ addmem (siz)
     }
 
     LblPtrEnd = memptr + siz;
-    return (void *)memptr;
+    return memptr;
 }
 
 

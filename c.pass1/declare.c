@@ -1170,13 +1170,13 @@ declarator (ptr, dptr, bastype)
     int bastype;
 #endif
 {
+    register dimnode *tempdim;
     int dtype,
         savmos;
     dimnode *p1;
     int count;
-    dimnode *tempdim;
+    dimnode *p;
     auto dimnode *dummy;
-    register dimnode *p;
 
 #ifdef COCO
     dtype = *ptr = 0;

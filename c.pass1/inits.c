@@ -7,12 +7,12 @@
 /* This file is an exact match with original */
 
 #ifdef COCO
-static int ilist (int type, register symnode *ptr, symnode *list, int level);
+static int ilist ();
 #else
 #   ifndef direct
 #       define direct
 #   endif
-static int ilist ();
+static int ilist (int type, register symnode *ptr, symnode *list, int level);
 #endif
 
 direct int datstring,

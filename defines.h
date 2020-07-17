@@ -362,12 +362,6 @@ typedef struct initstruct {
  * eventually be removed
  */
 
-#ifdef MAIN
-#   define GLOBAL
-#else
-#   define GLOBAL extern
-#endif
-
 #ifndef COCO
 #   ifndef direct
 #       define direct

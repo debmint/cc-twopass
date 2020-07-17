@@ -17,8 +17,8 @@
 /*static swcherr();*/
 
 /*typedef struct casestct {
-    struct casestct *clink;*/     /* next case in case list */
-    /*int cval;*/                   /* case value */
+    struct casestct *clink;*/
+    /*int cval;*/
     /*short clab;*/                 /* case label */
 /*} casnode;*/
 
@@ -28,7 +28,7 @@
                 /**lastcase,*/  /* last case in current list */
                 /**freecase;*/  /* list of spare case nodes */
 
-#if 0
+#ifdef Goozler
 static int  swflag,         /* current switch level */
 #else
 /*static int*/
@@ -48,7 +48,7 @@ static expnode *getptest ();
 static expnode *gettest ();
 static void dolabel ();
 
-#ifdef COCO
+#ifndef COCO
 static expnode *sidexp (int p1);
 static expnode *emit (register expnode *ptr);
 void dotest (register expnode *regptr, int p2, int p3, int p4);
@@ -260,7 +260,7 @@ do_swtch ()
     int tests;
     int temp;
     int v2;
-    struct casnode *_refsav;
+    casnode *_refsav;
     register expnode *ptr;
 
     nxt_word ();

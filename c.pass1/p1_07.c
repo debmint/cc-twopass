@@ -414,9 +414,7 @@ void
 #ifndef COCO
 wrt_info (register expnode *wp)
 #else
-
 #define ldf ((LBLDEF *)wp)
-void 
 wrt_info (wp)
     register expnode *wp;
 #endif

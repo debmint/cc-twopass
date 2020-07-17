@@ -5,7 +5,7 @@
 /* Coco does not recognize type "void" */
 
 #ifdef COCO
-typedef int void;
+#define void int
 #endif
 
 /* Do this for coco.  Linux allows rereading stdio */
@@ -22,6 +22,12 @@ typedef int void;
 #   include "protoc.h"
 #else
 #   include "proto.h"
+#endif
+
+#ifdef MAIN
+#   define GLOBAL
+#else
+#   define GLOBAL extern
 #endif
 
 /* The following were Direct Page variables */
@@ -49,7 +55,7 @@ GLOBAL direct int D003d;
 GLOBAL direct int symline;
 GLOBAL direct int Struct_Union;
 GLOBAL direct symnode *G18Current;
-GLOBAL direct int freecase;
+GLOBAL direct casnode *freecase;
 GLOBAL direct symnode *arglist;
 GLOBAL direct symnode *labelist;
 GLOBAL direct symnode *vlist;
@@ -59,7 +65,7 @@ GLOBAL direct int blklev;
 GLOBAL direct int D0053;
 GLOBAL direct int contptr;
 GLOBAL direct int swflag;       /* D0057 */
-GLOBAL direct int caseptr;
+GLOBAL direct casnode *caseptr;
 GLOBAL direct casnode *lastcase;
 GLOBAL direct int notusd5d;
 GLOBAL direct int sym;
@@ -128,9 +134,8 @@ GLOBAL symnode
 sdummy
 #ifdef MAIN
 = {
-    0,1,0,2,0,0,0,0,0,12,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0
+    1,2,0,0,12,0,0,0,0,0,
+    {'\0','\0','\0','\0','\0','\0','\0','\0'}
 }
 #endif
 ;
