@@ -4,6 +4,9 @@
 
 > Y D; U C; #D & ; #X &
 
+" D 0212 'End of init data
+'
+
 * Program name - Adjust the end address
 * The version byte follows, it needs no adjustment
 A 0d-13; S &
@@ -223,7 +226,7 @@ W 5c77/8
 > Y & 5E2A - 5E2E
 > Y D (+&2) 6176
 ' L 6235 Init DP data size
-L & 6235; S & /3
+L & 6235; S &; L D
 
 ' L 623a Init Non-DP size
 L & 623a
@@ -237,22 +240,22 @@ L & -625f
 L $ 6260
 
 ' L 6262 .        to D004d
-L $ 6262
+L L 6262
 
 ' L 6264 .        to D004f
-L $
+L L
 
 ' L 6266 .        to D0051
-L $
+L L
 
 ' L 6268 .        to D0053
-L $
+L L
 
 ' L 626a .        to D0055
-L $
+L L
 
 ' L 626c to D0057
-L $
+L L
 
 " L 626e 'atoftbl (from scale.c)'
 B /104

@@ -9,93 +9,93 @@
 void
 #ifdef COCO
 L1f13 (cref, parm2, parm3, parm4)
-    register CMDREF *cref;
+    register expnode *cref;
     int parm2, parm3, parm4;
 #else
-L1f13 (CMDREF *cref, int parm2, int parm3, int parm4)
+L1f13 (expnode *cref, int parm2, int parm3, int parm4)
 #endif
 {
     int var2;
     int var0;
 
-    switch (var2 =  cref->vartyp)
+    switch (var2 =  cref->op)
     {           /* break = L20e9 */
-        case C_ANDAND:     /* L1f28 */
-            L1f13 (cref->cr_Left, (var0 = ++D000b), parm3, 1);
+        case DBLAND:     /* L1f28 */
+            L1f13 (cref->left, (var0 = ++D000b), parm3, 1);
             goto L1f66;
-        case C_OROR:       /* L1f48 */
-            L1f13 (cref->cr_Left, parm2, (var0 = ++D000b), 0);
+        case DBLOR:       /* L1f48 */
+            L1f13 (cref->left, parm2, (var0 = ++D000b), 0);
 L1f66:
             L4414 (var0);
-            L1f13 (cref->cr_Right, parm2, parm3, parm4);
+            L1f13 (cref->right, parm2, parm3, parm4);
             break;                      /* go to L20e9 */
-        case C_EXCLAM:     /* L1f72 */
-            L1f13 (cref->cr_Left, parm3, parm2, (1 - parm4));
+        case NOT:     /* L1f72 */
+            L1f13 (cref->left, parm3, parm2, (1 - parm4));
             break;
-        case C_EQEQ:
-        case C_NOTEQ:
-        case C_LT_EQ:
-        case C_LT:
-        case C_GT_EQ:      /* L1f87 */
+        case EQ:
+        case NEQ:
+        case LEQ:
+        case LT:
+        case GEQ:      /* L1f87 */
         case 95:
-        case 96:
+        case ULEQ:
         case 97:
         case 98:
         case 99:
             L20ed (var2, cref, parm2, parm3, parm4);
             break;
-        case C_INTSQUOT:
-        case C_DOUBLE:     /* L1fa1 */
-        case C_LONG:
-            if (cref->cmdval && ! parm4)
+        case CONST:
+        case FCONST:     /* L1fa1 */
+        case LCONST:
+            if (cref->val.num && ! parm4)
             {
 #ifdef COCO
-                L3292 (124, parm2, 0);
+                gen (JMP, parm2, 0);
 #else
-                L3292 (124, parm2, 0, 0);
+                gen (JMP, parm2, 0, 0);
 #endif
             }
             else
             {
-                if (parm4 && ( ! cref->cmdval))
+                if (parm4 && ( ! cref->val.num))
                 {
 #ifdef COCO
-                    L3292 (124, parm3, 0);
+                    gen (JMP, parm3, 0);
 #else
-                    L3292 (124, parm3, 0, 0);
+                    gen (JMP, parm3, 0, 0);
 #endif
                 }
             }
             break;
-        case C_COMMA:      /* L1fcb */
-            L0d04 (cref->cr_Left);
-            L1f13 (cref->cr_Right, parm2, parm3, parm4);
+        case COMMA:      /* L1fcb */
+            L0d04 (cref->left);
+            L1f13 (cref->right, parm2, parm3, parm4);
             break;
         default:           /* L1fec */
-            if (cref->ft_Ty == FT_LONG)
+            if (cref->type == LONG)
             {
                 L2505 (cref);
 #ifdef COCO
-                L3292 (136, 139);
+                gen (LONGOP, TEST);
 #else
-                L3292 (136, 139, 0, 0);
+                gen (LONGOP, TEST, 0, 0);
 #endif
                 /* go to L204d */
             }
             else
             {
-                if ((cref->ft_Ty == FT_FLOAT) || (cref->ft_Ty == FT_DOUBLE))
+                if ((cref->type == FLOAT) || (cref->type == DOUBLE))
                 {               /* else L2042 */
-                    if (cref->vartyp == 140)
+                    if (cref->op == FTOD)
                     {
-                        cref = cref->cr_Left;
+                        cref = cref->left;
                     }
 
                     L29fc (cref);           /* L2026 */
 #ifdef COCO
-                    L3292 (135, 139, cref->ft_Ty);
+                    gen (DBLOP, TEST, cref->type);
 #else
-                    L3292 (135, 139, cref->ft_Ty, 0);
+                    gen (DBLOP, TEST, cref->type, 0);
 #endif
                 }
                 else
@@ -109,17 +109,17 @@ L204d:
             if (parm4)
             {
 #ifdef COCO
-                L3292 (130, C_EQEQ, parm3);
+                gen (CNDJMP, EQ, parm3);
 #else
-                L3292 (130, C_EQEQ, parm3, 0);
+                gen (CNDJMP, EQ, parm3, 0);
 #endif
             }
             else
             {
 #ifdef COCO
-                L3292 (130, C_NOTEQ, parm2);
+                gen (CNDJMP, NEQ, parm2);
 #else
-                L3292 (130, C_NOTEQ, parm2, 0);
+                gen (CNDJMP, NEQ, parm2, 0);
 #endif
             }
 
@@ -131,31 +131,31 @@ void
 #ifdef COCO
 L20ed (parm1, cref, parm3, parm4, parm5)
     int parm1;
-    CMDREF *cref;
+    expnode *cref;
     int parm3, parm4, parm5;
 #else
-L20ed (int parm1, CMDREF *cref, int parm3, int parm4, int parm5)
+L20ed (int parm1, expnode *cref, int parm3, int parm4, int parm5)
         /* +10            +12        +14        +16        +18  */
 #endif
 {
-    CMDREF *var4;
+    expnode *var4;
     int var2;
-    CMDREF *var0 = cref->cr_Left;
+    expnode *var0 = cref->left;
 
-    register CMDREF *_crRight = cref->cr_Right;
+    register expnode *_crRight = cref->right;
 
     var2 = (parm5 ? parm4 : parm3);
 
     parm1 = (parm5 ? L2466 (parm1) : parm1);
 
-    if (var0->ft_Ty == FT_LONG)
+    if (var0->type == LONG)
     {
         L2520 (cref);       /* go to L214b */
         goto L22b2;
     }
     else
     {           /* L2134 */
-        if ((var0->ft_Ty == FT_FLOAT) || (var0->ft_Ty == FT_DOUBLE))
+        if ((var0->type == FLOAT) || (var0->type == DOUBLE))
         {
             L2a17 (cref);
             goto L22b2;
@@ -167,8 +167,8 @@ L20ed (int parm1, CMDREF *cref, int parm3, int parm4, int parm5)
     /* L2152 */
     if ((L24e6 ( var0)) ||
             ((L22ca (var0)) && ( ! L22ca (_crRight))) ||
-            ((is_regvar (_crRight->vartyp)) &&
-                        ( ! is_regvar (var0->vartyp))))  /* else L219c */
+            ((is_regvar (_crRight->op)) &&
+                        ( ! is_regvar (var0->op))))  /* else L219c */
     {
         var4 = var0;        /* L2189 */
         var0 = _crRight;
@@ -176,97 +176,97 @@ L20ed (int parm1, CMDREF *cref, int parm3, int parm4, int parm5)
         parm1 = L249e (parm1);
     }
 
-    var4 = var0->vartyp;        /* L219c */
+    var4 = var0->op;        /* L219c */
 
     if (is_regvar (var4))       /* else L221f */
     {
         L0d04 (_crRight);
 
-        switch (_crRight->vartyp)
+        switch (_crRight->op)
         {
-            case 65:           /* L21b8 */
+            case AMPER:           /* L21b8 */
                 L0c2d (_crRight);
                 goto L21e0;
-            case C_CHR2INT:    /* L21c3 */
-                L3292 (117, 112, 119, _crRight);
-                _crRight->vartyp = 112;
+            case CTOI:    /* L21c3 */
+                gen (LOAD, DREG, NODE, _crRight);
+                _crRight->op = DREG;
                 /* fall through to next case */
-            case 113:          /* L21e2 */
-            case C_X_RGWRD:    /* L21e2 */
-            case C_RGWRD:      /* L21e2 */
-            case 112:          /* L21e2 */
+            case XREG:      /* L21e2 */
+            case YREG:      /* L21e2 */
+            case UREG:      /* L21e2 */
+            case DREG:      /* L21e2 */
 L21e0:
 #ifdef COCO
-                L3292 (122, _crRight->vartyp);
+                gen (PUSH, _crRight->op);
 #else
-                L3292 (122, _crRight->vartyp, 0, 0);
+                gen (PUSH, _crRight->op, 0, 0);
 #endif
-                 _crRight->vartyp = 110;    /* go to L229b */
+                 _crRight->op = STACK;    /* go to L229b */
             default:           /* L229b */
                  break;
         }
     }       /* end if (is_regvar...) */
     else
     {
-        if ((L24e6 (_crRight)) && (parm1 < 96))       /* L221f */
+        if ((L24e6 (_crRight)) && (parm1 < ULEQ))       /* L221f */
         {
             L2323 (var0);       /* go to L22b4 */
             /* this should probably have been goto L22b2; */
 #ifdef COCO
-            L3292 (130, parm1, var2);
+            gen (CNDJMP, parm1, var2);
 #else
-            L3292 (130, parm1, var2, 0);
+            gen (CNDJMP, parm1, var2, 0);
 #endif
             return;
         }
         else
         {
             L0c2d (var0);       /* L223c */
-            var4 = var0->vartyp;
+            var4 = var0->op;
             
-            if ((L1440 (_crRight)) || ((var4 == 112) && L22ca (_crRight)))
+            if ((L1440 (_crRight)) || ((var4 == DREG) && L22ca (_crRight)))
             {
                 L0d04 (_crRight);   /* go to L229b */
             }
             else
             {
 #ifdef COCO
-                L3292 (122, var4);
+                gen (PUSH, var4);
 #else
-                L3292 (122, var4, 0, 0);
+                gen (PUSH, var4, 0, 0);
 #endif
-                var0->vartyp = 110;
+                var0->op = STACK;
                 L0c2d (_crRight);
-                var4 = _crRight->vartyp;
+                var4 = _crRight->op;
                 _crRight = var0;
                 parm1 = L249e (parm1);
             }
         }
     }       /* end else => if ! is_regvar... */
 
-    L3292 (129, var4, 119, _crRight); /* L229b... */
+    gen (COMPARE, var4, NODE, _crRight); /* L229b... */
 L22b2:
 #ifdef COCO
-    L3292 (130, parm1, var2);
+    gen (CNDJMP, parm1, var2);
 #else
-    L3292 (130, parm1, var2, 0);
+    gen (CNDJMP, parm1, var2, 0);
 #endif
 }
 
 int
 #ifdef COCO
 L22ca (cref)
-    CMDREF *cref;
+    expnode *cref;
 #else
-L22ca (CMDREF *cref)
+L22ca (expnode *cref)
 #endif
 {
-    switch (cref->vartyp)
+    switch (cref->op)
     {
-        case C_USRLBL:      /* L22d8 */
-        case C_INTSQUOT:
+        case NAME:      /* L22d8 */
+        case CONST:
             return 1;
-        case C_ASTERISK:    /* L22dd */
+        case STAR:    /* L22dd */
             return L14da (cref);
         default:
             return 0;
@@ -275,11 +275,11 @@ L22ca (CMDREF *cref)
 
 #ifdef COCO
 p2_03_notused (parm1, parm2)
-    CMDREF *parm1;
+    expnode *parm1;
     int parm2;
 {
-    if ((parm1->vartyp == C_USRLBL) &&
-                    ((LBLDEF *)(parm1->cmdval)->gentyp == FT_AUTO))
+    if ((parm1->op == NAME) &&
+                    ((LBLDEF *)(parm1->val.num)->gentyp == AUTO))
     {
         return 1;
     }
@@ -291,54 +291,54 @@ p2_03_notused (parm1, parm2)
 void
 #ifdef COCO
 L2323 (cref)
-    register CMDREF *cref;
+    register expnode *cref;
 #else
-L2323 (CMDREF *cref)
+L2323 (expnode *cref)
 #endif
 {
-    CMDREF *var2;
+    expnode *var2;
     int var0 = 0;
 
-    switch (cref->vartyp)
+    switch (cref->op)
     {                                       /* break = L23fe */
-        case C_AND:        /* L2337 */
-            if ((((var2 = cref->cr_Right)->vartyp) != C_INTSQUOT) ||
-                        ((unsigned int)(var2->cmdval) > (unsigned int)255))
+        case AND:        /* L2337 */
+            if ((((var2 = cref->right)->op) != CONST) ||
+                        ((unsigned int)(var2->val.num) > (unsigned int)255))
             {
                     var0 = 1;
             }
 
             break;
 
-        case C_EQUAL:      /* L2353 */
-            if ((is_regvar ((cref->cr_Left)->vartyp)) &&
-                                ( ! L22ca (cref->cr_Right)))
+        case ASSIGN:      /* L2353 */
+            if ((is_regvar ((cref->left)->op)) &&
+                                ( ! L22ca (cref->right)))
             {
                 var0 = 1;
             }
 
             break;
 
-        case C_INCREMENT:
-        case C_DECREMENT:
-        case C_MINMINUS:
-        case C_PLUSPLUS:
-        case C_PLUSEQ:
-        case C_MINEQU:     /* L2371 */
-        case C_ANDEQ:
-        case C_OREQ:
-        case C_EOREQ:
-            if ( ! is_regvar ((cref->cr_Left)->vartyp))
+        case INCAFT:
+        case DECAFT:
+        case DECBEF:
+        case INCBEF:
+        case ASSPLUS:
+        case ASSMIN:     /* L2371 */
+        case ASSAND:
+        case ASSOR:
+        case ASSXOR:
+            if ( ! is_regvar ((cref->left)->op))
             {
                 break;
             }
-        case C_X_RGWRD:
-        case C_RGWRD:
-        case C_VBAR:
-        case C_CARET:      /* L2380 */
-        case C_TILDE:
-        case C_MINUS:
-        case C_PARENS:
+        case YREG:
+        case UREG:
+        case OR:
+        case XOR:      /* L2380 */
+        case COMPL:
+        case NEG:
+        case CALL:
             var0 = 1;
             break;
     }
@@ -346,24 +346,24 @@ L2323 (CMDREF *cref)
     D0019 = 0;
     L0d04 (cref);
 
-    switch (cref->vartyp)
+    switch (cref->op)
     {
-        case 113:
-        case 112:          /* L240d */
-        case C_X_RGWRD:
-        case C_RGWRD:
+        case XREG:
+        case DREG:          /* L240d */
+        case YREG:
+        case UREG:
             if (var0 || D0019)
             {
-                L3292 (129, cref->vartyp, C_INTSQUOT, 0);
+                gen (COMPARE, cref->op, CONST, 0);
             }
 
             break;
 
-        case C_CHR2INT:    /* L2427 */
-            L3292 (117, 112, 119, (cref = cref->cr_Left));
+        case CTOI:    /* L2427 */
+            gen (LOAD, DREG, NODE, (cref = cref->left));
             break;
         default:           /* L2429 */
-            L3292 (117, 112, 119, cref);
+            gen (LOAD, DREG, NODE, cref);
             break;
     }
 }
@@ -378,12 +378,12 @@ L2466 (int parm1)
 {
     switch (parm1)
     {
-        case C_EQEQ:        /* L2472 */
-            return C_NOTEQ;
-        case C_NOTEQ:       /* L2477 */
-            return C_EQEQ;
+        case EQ:        /* L2472 */
+            return NEQ;
+        case NEQ:       /* L2477 */
+            return EQ;
         default:            /* L247c */
-            return (((parm1 > C_GT) ? 195 : 187) - parm1);
+            return (((parm1 > GT) ? 195 : 187) - parm1);
     }
 }
 
@@ -397,12 +397,12 @@ L249e (int parm1)
 {
     switch (parm1)
     {
-        case C_EQEQ:       /* L24aa */
-        case C_NOTEQ:      /* L24aa */
+        case EQ:       /* L24aa */
+        case NEQ:      /* L24aa */
             return parm1;
-        case C_LT_EQ:      /* L24ae */
-        case C_LT:         /* L24ae */
-        case 96:           /* L24ae */
+        case LEQ:      /* L24ae */
+        case LT:         /* L24ae */
+        case ULEQ:           /* L24ae */
         case 97:           /* L24ae */
             return (parm1 + 2);
         default:           /* L24b5 */
@@ -413,14 +413,14 @@ L249e (int parm1)
 int
 #ifdef COCO
 L24e6 (cref)
-    register CMDREF *cref;
+    register expnode *cref;
 #else
-L24e6 (CMDREF *cref)
+L24e6 (expnode *cref)
 #endif
 {
-    return ((cref->vartyp == C_INTSQUOT) && ( ! cref->cmdval));
+    return ((cref->op == CONST) && ( ! cref->val.num));
 
-    /*if ((cref->vartyp == C_INTSQUOT) && ( ! cref->cmdval))
+    /*if ((cref->op == CONST) && ( ! cref->val.num))
     {
         return 1;
     }
@@ -433,9 +433,9 @@ L24e6 (CMDREF *cref)
 void
 #ifdef COCO
 L2505 (cref)
-    CMDREF *cref;
+    expnode *cref;
 #else
-L2505 (CMDREF *cref)
+L2505 (expnode *cref)
 #endif
 {
     L2520 (cref);
@@ -445,41 +445,41 @@ L2505 (CMDREF *cref)
 void
 #ifdef COCO
 L2520 (cref)
-    register CMDREF *cref;
+    register expnode *cref;
 #else
-L2520 (CMDREF *cref)
+L2520 (expnode *cref)
 #endif
 {
-    CMDREF *var4;
+    expnode *var4;
     int var2;
     int var0;
 
-    switch (var2 = cref->vartyp)
+    switch (var2 = cref->op)
     {       /* break = L28f7 */
         case 128:          /* L28f7 */
-        case 147:          /* L28f7 */
-        case 148:          /* L28f7 */
-        case 149:          /* L28f7 */
-        case C_USRLBL:     /* L28f7 */
+        case XIND:          /* L28f7 */
+        case YIND:          /* L28f7 */
+        case UIND:          /* L28f7 */
+        case NAME:     /* L28f7 */
             break;
-        case C_ASTERISK:   /* L2535 */
+        case STAR:   /* L2535 */
             L1953 (cref);
             L152d (cref);
 
-            switch (cref->vartyp)
+            switch (cref->op)
             {
-                case 147:          /* L2547 */
-                case 148:          /* L2547 */
-                case 149:          /* L2547 */
-                    if (cref->cmdval)
+                case XIND:          /* L2547 */
+                case YIND:          /* L2547 */
+                case UIND:          /* L2547 */
+                    if (cref->val.num)
                     {
 #ifdef COCO
-                        L3292 (123, 119, cref);
+                        gen (LEAX, NODE, cref);
 #else
-                        L3292 (123, 119, cref, 0);
+                        gen (LEAX, NODE, cref, 0);
 #endif
-                        cref->vartyp = 147;
-                        cref->cmdval = 0;
+                        cref->op = XIND;
+                        cref->val.num = 0;
                     }
 
                     /* fall through to break */
@@ -489,117 +489,117 @@ L2520 (CMDREF *cref)
 
             break;
 
-        case C_U2LNG:      /* L2577 */
-            L0bc3 (cref->cr_Left);
-            L3292 (136, C_U2LNG NUL2);
+        case UTOL:      /* L2577 */
+            L0bc3 (cref->left);
+            gen (LONGOP, UTOL NUL2);
             goto L25bf;
-        case C_DBL2LNG:    /* L2586 */
-            L29fc (cref->cr_Left);
+        case DTOL:    /* L2586 */
+            L29fc (cref->left);
 #ifdef COCO
-            L3292 (135, C_DBL2LNG, cref->cr_Left);
+            gen (DBLOP, DTOL, cref->left);
 #else
-            L3292 (135, C_DBL2LNG, cref->cr_Left, 0);
+            gen (DBLOP, DTOL, cref->left, 0);
 #endif
             goto L25bf;
-        case C_I2LNG:      /* L25a5 */
-            L0bc3 (cref->cr_Left);
-            L3292 (136, C_I2LNG NUL2);
+        case ITOL:      /* L25a5 */
+            L0bc3 (cref->left);
+            gen (LONGOP, ITOL NUL2);
 L25bf:
-            cref->vartyp = 128;
+            cref->op = 128;
             break;
-        case C_LONG:       /* L25c9 */
+        case LCONST:       /* L25c9 */
 #ifdef COCO
-            L3292 (136, C_LONG, cref->cmdval);
+            gen (LONGOP, LCONST, cref->val.num);
 #else
-            L3292 (136, C_LONG, cref->cmdval, 0);
+            gen (LONGOP, LCONST, cref->val.num, 0);
 #endif
-            L3203 (cref->cmdval, 4);
+            L3203 (cref->val.num, 4);
             goto L27d4;
-        case C_QUESTION:   /* L25ea */
+        case QUERY:   /* L25ea */
             L12e8 (cref, L2505);
             goto L27d4;
-        case C_PLUSPLUS:   /* L25f7 */
-        case C_MINMINUS:
-        case C_TILDE:
-        case C_MINUS:
-            L2505 (cref->cr_Left);
+        case INCBEF:   /* L25f7 */
+        case DECBEF:
+        case COMPL:
+        case NEG:
+            L2505 (cref->left);
 #ifdef COCO
-            L3292 (136, var2);
+            gen (LONGOP, var2);
 #else
-            L3292 (136, var2, 0, 0);
+            gen (LONGOP, var2, 0, 0);
 #endif
             goto L27d4;
-        case C_INCREMENT:  /* L2613 */
-        case C_DECREMENT:
-            L3292 (127, 113, 128, 0);
+        case INCAFT:  /* L2613 */
+        case DECAFT:
+            gen (LOADIM, DREG, 128, 0);
 #ifdef COCO
-            L3292 (122, 113);
+            gen (PUSH, DREG);
 #else
-            L3292 (122, 113, 0, 0);
+            gen (PUSH, DREG, 0, 0);
 #endif
-            L2505 (cref->cr_Left);
+            L2505 (cref->left);
 #ifdef COCO
-            L3292 (136, var2);
-            L3292 (136, 137);
+            gen (LONGOP, var2);
+            gen (LONGOP, MOVE);
 #else
-            L3292 (136, var2, 0, 0);
-            L3292 (136, 137, 0, 0);
+            gen (LONGOP, var2, 0, 0);
+            gen (LONGOP, MOVE, 0, 0);
 #endif
 
-            L3292 (136, ((var2 == C_INCREMENT) ? C_DECREMENT : C_INCREMENT)
+            gen (LONGOP, ((var2 == INCAFT) ? DECAFT : INCAFT)
 #ifndef COCO
                     , 0, 0
 #endif
                   );
             goto L25bf;
 
-        case C_PARENS:     /* L2674 */
+        case CALL:     /* L2674 */
             L1364 (cref);
             goto L25bf;
-        case C_MULT:       /* L267e */
-            if (((cref->cr_Left)->vartyp) == C_LONG)
+        case TIMES:       /* L267e */
+            if (((cref->left)->op) == LCONST)
             {
-                CMDREF *_tmpref;
+                expnode *_tmpref;
 
-                _tmpref = cref->cr_Left;
-                cref->cr_Left = cref->cr_Right;
-                cref->cr_Right = _tmpref;
+                _tmpref = cref->left;
+                cref->left = cref->right;
+                cref->right = _tmpref;
             }
 
-            if (((cref->cr_Right)->vartyp) == C_LONG)       /* L2698 */
+            if (((cref->right)->op) == LCONST)       /* L2698 */
             {
-                var4 = ((CMDREF *)(cref->cr_Right)->cmdval);
+                var4 = ((expnode *)(cref->right)->val.num);
 
                     /* L26f9 */
-                if ( ! (var4->ft_Ty) && (var0 = L121f (var4->__cr2)))
+                if ( ! (var4->type) && (var0 = L121f (var4->size)))
                 {
-                    L3203 (var4, FT_STRUCT);
-                    var4 = cref->cr_Right;
-                    var4->cmdval = var0;
-                    var4->vartyp = C_INTSQUOT;
-                    var4->ft_Ty = FT_INT;
-                    var2 = (var2 == C_MULT) ? C_LSHIFT : C_RSHIFT;
+                    L3203 (var4, STRUCT);
+                    var4 = cref->right;
+                    var4->val.num = var0;
+                    var4->op = CONST;
+                    var4->type = INT;
+                    var2 = (var2 == TIMES) ? SHL : SHR;
                     goto L2733;
                 }
             }
 
             /* fall through to next case */
-        case C_SLASH:      /* L26f9 */
-        case C_EQEQ:
-        case C_NOTEQ:
-        case C_GT_EQ:
-        case C_LT_EQ:
-        case C_GT:
-        case C_LT:
-        case C_PLUS:
-        case C_NEG:
-        case C_PERCENT:
-        case C_AND:
-        case C_VBAR:
-        case C_CARET:
-            var4 = cref->cr_Left;
+        case DIV:      /* L26f9 */
+        case EQ:
+        case NEQ:
+        case GEQ:
+        case LEQ:
+        case GT:
+        case LT:
+        case PLUS:
+        case MINUS:
+        case MOD:
+        case AND:
+        case OR:
+        case XOR:
+            var4 = cref->left;
 
-            if (var4->vartyp == C_LONG)
+            if (var4->op == LCONST)
             {
                 L294b (var4);
             }
@@ -607,70 +607,70 @@ L25bf:
             {
                 L2505 (var4);
 #ifdef COCO
-                L3292 (136, 110);
+                gen (LONGOP, STACK);
 #else
-                L3292 (136, 110, 0, 0);
+                gen (LONGOP, STACK, 0, 0);
 #endif
             }
 
-            L2505 (cref->cr_Right);
+            L2505 (cref->right);
 #ifdef COCO
-            L3292 (136, var2);
+            gen (LONGOP, var2);
 #else
-            L3292 (136, var2, 0, 0);
+            gen (LONGOP, var2, 0, 0);
 #endif
             goto L25bf;
-        case C_LSHIFT:     /* L2735 */
-        case C_RSHIFT:
+        case SHL:     /* L2735 */
+        case SHR:
 L2733:
-            L2505 (cref->cr_Left);
+            L2505 (cref->left);
 #ifdef COCO
-            L3292 (122, 113);
+            gen (PUSH, DREG);
 #else
-            L3292 (122, 113, 0, 0);
+            gen (PUSH, DREG, 0, 0);
 #endif
-            L0bc3 ( cref->cr_Right);
+            L0bc3 ( cref->right);
 #ifdef COCO
-            L3292 (136, var2);
+            gen (LONGOP, var2);
 #else
-            L3292 (136, var2, 0, 0);
+            gen (LONGOP, var2, 0, 0);
 #endif
             goto L25bf;
-        case C_EQUAL:      /* L2769 */
-            L2505 (cref->cr_Left);
+        case ASSIGN:      /* L2769 */
+            L2505 (cref->left);
 #ifdef COCO
-            L3292 (122, 113);
+            gen (PUSH, DREG);
 #else
-            L3292 (122, 113, 0, 0);
+            gen (PUSH, DREG, 0, 0);
 #endif
-            L2505 (cref->cr_Right);
+            L2505 (cref->right);
             goto L27c1;
 
             /* We'll put this here -- don't know at the moment why it was
              * put here, will investigate l8tr
              */
 L278e:
-            L2505 (var4 = cref->cr_Left);
+            L2505 (var4 = cref->left);
 #ifdef COCO
-            L3292 (122, 113);
+            gen (PUSH, DREG);
 #else
-            L3292 (122, 113, 0, 0);
+            gen (PUSH, DREG, 0, 0);
 #endif
-            cref->vartyp = var2 - 80;
-            var4->vartyp = 147;
+            cref->op = var2 - 80;
+            var4->op = XIND;
             L2520 (cref);
 L27c1:
 #ifdef COCO
-            L3292 (136, 137);
+            gen (LONGOP, MOVE);
 #else
-            L3292 (136, 137, 0, 0);
+            gen (LONGOP, MOVE, 0, 0);
 #endif
 L27d4:
-            cref->vartyp = 147;
-            cref->cmdval = 0;
+            cref->op = XIND;
+            cref->val.num = 0;
             break;
         default:           /* L27e2 */
-            if (var2 >= C_PLUSEQ)
+            if (var2 >= ASSPLUS)
             {
                 goto L278e;
             }
@@ -683,22 +683,22 @@ L27d4:
 void
 #ifdef COCO
 L28fb (cref)
-    CMDREF *cref;
+    expnode *cref;
 #else
-L28fb (CMDREF *cref)
+L28fb (expnode *cref)
 #endif
 {
-    switch (cref->vartyp)
+    switch (cref->op)
     {
-        case C_USRLBL:      /* L2909 */
-            L3292 (127, 113, 119, cref);
+        case NAME:      /* L2909 */
+            gen (LOADIM, DREG, NODE, cref);
             break;
-        case 148:           /* L2923 */
-        case 149:
+        case YIND:           /* L2923 */
+        case UIND:
 #ifdef COCO
-            L3292 (123, 119, cref);
+            gen (LEAX, NODE, cref);
 #else
-            L3292 (123, 119, cref, 0);
+            gen (LEAX, NODE, cref, 0);
 #endif
             break;
     }
@@ -711,9 +711,9 @@ L28fb (CMDREF *cref)
 void
 #ifdef COCO
 L294b (cref)
-    register CMDREF *cref;
+    register expnode *cref;
 #else
-L294b (CMDREF *cref)
+L294b (expnode *cref)
 #endif
 {
     union {
@@ -726,33 +726,33 @@ L294b (CMDREF *cref)
      * If so, we can do better with the cross compiler
      */
 
-    _lng.l = (long *)(cref->cmdval);
+    _lng.l = cref->val.lp;
 
     if (*(_lng.l))
     {           /* elsee L29aa */
-        L3292 (117, 112, C_INTSQUOT, _lng.i[1]);
+        gen (LOAD, DREG, CONST, _lng.i[1]);
 #ifdef COCO
-        L3292 (122, 112);
+        gen (PUSH, DREG);
 #else
-        L3292 (122, 112, 0, 0);
+        gen (PUSH, DREG, 0, 0);
 #endif
-        L3292 (117, 112, C_INTSQUOT, _lng.i[0]);    /* go to L29d1 */
+        gen (LOAD, DREG, CONST, _lng.i[0]);    /* go to L29d1 */
     }
     else
     {
-        L3292 (117, 112, C_INTSQUOT, 0);
+        gen (LOAD, DREG, CONST, 0);
 #ifdef COCO
-        L3292 (122, 112);
+        gen (PUSH, DREG);
 #else
-        L3292 (122, 112, 0, 0);
+        gen (PUSH, DREG, 0, 0);
 #endif
     }
 
 #ifdef COCO
-    L3292 (122, 112);
+    gen (PUSH, DREG);
 #else
-    L3292 (122, 112, 0, 0);
+    gen (PUSH, DREG, 0, 0);
 #endif
     L3203 (_lng.l, 4);
-    cref->cmdval = 0;
+    cref->val.num = 0;
 }

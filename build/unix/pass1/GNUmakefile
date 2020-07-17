@@ -1,7 +1,7 @@
 vpath %.c = ../../../c.pass1
 vpath %.h = ../../../c.pass1
 
-CFLAGS = -m32 -I../../..
+CFLAGS = -g -m32 -I../../..
 #CFLAGS  = -g -m32 -DUNIX -DPTREE -DPROF -DREGCONTS \
         -Wall -Wno-incompatible-pointer-types -Wno-implicit-int \
         -Wno-implicit-function-declaration -Wno-parentheses \
@@ -15,7 +15,7 @@ RM = rm -f
 $(PROG): $(OBJS)
 	$(CC) $(LFLAGS) $(OBJS) -o$(PROG)
 
-$(OBJS):
+$(OBJS): GNUmakefile
 
 clean:
 	$(RM) $(PROG) $(OBJS)

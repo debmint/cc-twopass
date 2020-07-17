@@ -12,7 +12,7 @@
 #   define direct
 #endif
 
-/* coco calls L3292 with variable # of parameters,
+/* coco calls gen with variable # of parameters,
  * define padding for gcc
  */
 #ifdef COCO

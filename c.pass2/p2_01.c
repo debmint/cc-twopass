@@ -8,15 +8,15 @@
 
 extern direct int D0023;
 #ifdef COCO
-CMDREF *L0787 ();
+expnode *L0787 ();
 #endif
 
+int
 #ifdef COCO
 main (argc, argv)
     int argc;
     char **argv;
 #else
-int
 main (int argc, char **argv)
 #endif
 {
@@ -221,26 +221,26 @@ L028b:
                 psh_stk (getword (InPath));
                 break;
             case 'r':          /* L0515 */
-                L3292 (18, 0, 0 NUL1);
+                gen (18, 0, 0 NUL1);
                 break;
             case 'J':          /* L0523 */
                 
-                L3292 (125, getword (InPath), (var24 = getword (InPath)) NUL1);
+                gen (125, getword (InPath), (var24 = getword (InPath)) NUL1);
                 break;
             case 'G':          /* L053f */
-                L3292 (29, getword (InPath), 0 NUL1);
+                gen (29, getword (InPath), 0 NUL1);
                 break;
             case 'j':          /* L0551 */
-                L3292 (124, getword (InPath), 0 NUL1);
+                gen (124, getword (InPath), 0 NUL1);
                 break;
             case 'D':          /* L0563 */
-                L3292 (9, getword (InPath), (var24 = getword (InPath)) NUL1);
+                gen (9, getword (InPath), (var24 = getword (InPath)) NUL1);
                 break;
             case 'Y':          /* L0587 */
-                L3292 (118, getword (InPath) NUL2);
+                gen (118, getword (InPath) NUL2);
                 break;
             case 'U':          /* L0595 */
-                L3292 ( 111, getword (InPath) NUL2);
+                gen ( 111, getword (InPath) NUL2);
                 break;
             case 'S':          /* L05ab */
                 var24 = getc (InPath);
@@ -275,19 +275,19 @@ L028b:
                     int _fval;
 
                     _fval = getword (InPath);
-                    fread (&(_fdbl), DBLSIZ, 1, InPath);
+                    fread (&(_fdbl), DOUBLESIZE, 1, InPath);
                     L095c (&(_fdbl));
 
-                    if (_fval == FT_DOUBLE)
+                    if (_fval == DOUBLE)
                     {
-                        L3dd0 (&_fdbl, DBLSIZ/2);
+                        L3dd0 (&_fdbl, DOUBLESIZE/2);
                     }
                     else
                     {
                         float _myflot;
 
                         _myflot = _fdbl;
-                        L3dd0 (&_myflot, FLOATSIZ/2);
+                        L3dd0 (&_myflot, FLOATSIZE/2);
                     }
 
                     break;
@@ -329,7 +329,7 @@ L028b:
     }       /* end while <read input> */
 }           /* end main () */
 
-CMDREF *
+expnode *
 #ifdef COCO
 L0787 ()
 #else
@@ -344,28 +344,28 @@ L0787 (void)
     long *_mylong;
     double *_mydbl;
 
-    register CMDREF *cref;
+    register expnode *cref;
 
     _cmdty = getc (InPath);
 
-    if (!(cref = getmem (sizeof (CMDREF))))
+    if (!(cref = getmem (sizeof (expnode))))
     {
         outofmemory ();
     }
 
-    cref->ft_Ty = getword (InPath);       /* L07af */
-    cref->__cr2 = getword (InPath);
-    cref->vartyp = getword (InPath);
-    cref->_cline = getword (InPath);
-    cref->_lpos = getc (InPath);
-    cref->__cr18 = getc (InPath);
-    cref->cr_Nxt = getword (InPath);
+    cref->type = getword (InPath);       /* L07af */
+    cref->size = getword (InPath);
+    cref->op = getword (InPath);
+    cref->lno = getword (InPath);
+    cref->pnt = getc (InPath);
+    cref->sux = getc (InPath);
+    cref->modifier = getword (InPath);
 
-    switch (cref->vartyp)
+    switch (cref->op)
     {
-        case C_USRLBL:     /* L0805 */
+        case NAME:     /* L0805 */
             /* Create a 13-byte struct ? */
-            cref->cmdval = _nwrf = getmem (sizeof (struct nwref));
+            cref->val.num = _nwrf = getmem (sizeof (struct nwref));
 
             if ( _nwrf == 0)
             {
@@ -377,10 +377,10 @@ L0787 (void)
 
             switch (_nwrf->ftyp)
             {
-                case FT_EXTERN:    /* L0838 */
-                case FT_LSEEK:     /* L0838 */
-                case FT_DIRECT:    /* L0838 */
-                case FT_DPXTRN:    /* L0838 */
+                case EXTERN:    /* L0838 */
+                case EXTDEF:     /* L0838 */
+                case DIRECT:    /* L0838 */
+                case EXTERND:    /* L0838 */
                     _lblnamptr = _nwrf->rfdat.st;
                     
                     while (*(_lblnamptr++) = getc (InPath));
@@ -392,43 +392,43 @@ L0787 (void)
             }
 
             break;
-        case C_LONG:       /* L0886 */
-            if ( ! (_mylong = getmem (LONGSIZ)))
+        case LCONST:       /* L0886 */
+            if ( ! (_mylong = getmem (LONGSIZE)))
             {
                 outofmemory ();
             }
 
-            fread (_mylong, LONGSIZ, 1, InPath);
-            cref->cmdval = _mylong;
+            fread (_mylong, LONGSIZE, 1, InPath);
+            cref->val.num = _mylong;
             break;
-        case C_DOUBLE:     /* L08b2 */
-            if ( ! (_mydbl = getmem (DBLSIZ)))
+        case FCONST:     /* L08b2 */
+            if ( ! (_mydbl = getmem (DOUBLESIZE)))
             {
                 outofmemory ();
             }
 
-            fread (_mydbl, DBLSIZ, 1, InPath);
+            fread (_mydbl, DOUBLESIZE, 1, InPath);
             L095c (_mydbl);
-            cref->cmdval = _mydbl;
+            cref->val.num = _mydbl;
             break;
         default:           /* L08e7 */
-            cref->cmdval = getword (InPath);
+            cref->val.num = getword (InPath);
             break;
     }
 
-    cref->cr_Left = 0;
+    cref->left = 0;
 
     switch (_cmdty)
     {
         case 'B':           /* L0911 */
-            cref->cr_Left = L0787 ();
+            cref->left = L0787 ();
         case 'R':           /* L0916 */
-            cref->cr_Right = L0787 ();
+            cref->right = L0787 ();
             break;
         case 'L':           /* L091b */
-            cref->cr_Left = L0787 ();
+            cref->left = L0787 ();
         case 'N':           /* L0920 */
-            cref->cr_Right = 0;
+            cref->right = 0;
             break;
         default:           /* L0926 */
             fprintf (stderr, "bad node type: %02x\n", _cmdty);
@@ -534,45 +534,45 @@ openoutpth (fnam)
 void
 #ifdef COCO
 L0a16 (cref, parm2)
-    register CMDREF *cref;
+    register expnode *cref;
     int parm2;
 #else
-L0a16 (CMDREF *cref, int parm2)
+L0a16 (expnode *cref, int parm2)
 #endif
 {
     switch (parm2)
     {
-        case FT_LONG:      /* L0a25 */
+        case LONG:      /* L0a25 */
             L2505 (cref);
             goto L0a39;
-        case FT_FLOAT:     /* L0a30 */
-        case FT_DOUBLE:    /* L0a30 */
+        case FLOAT:     /* L0a30 */
+        case DOUBLE:    /* L0a30 */
             L29fc (cref);
 L0a39:
-            if (cref->vartyp != 128)
+            if (cref->op != FREG)
             {
 #ifdef COCO
-                L3292 (127, C_RGWRD, 128);
-                L3292 (122, C_RGWRD);
+                gen (LOADIM, UREG, FREG);
+                gen (PUSH, UREG);
 #else
-                L3292 (127, C_RGWRD, 128, 0);
-                L3292 (122, C_RGWRD, 0, 0);
+                gen (LOADIM, UREG, FREG, 0);
+                gen (PUSH, UREG, 0, 0);
 #endif
                 switch (parm2)
                 {
-                    case FT_FLOAT:  /* L0a6c */
-                    case FT_DOUBLE: /* L0a6c */
+                    case FLOAT:  /* L0a6c */
+                    case DOUBLE: /* L0a6c */
 #ifdef COCO
-                        L3292 (135, 137, parm2);
+                        gen (DBLOP, MOVE, parm2);
 #else
-                        L3292 (135, 137, parm2, 0);
+                        gen (DBLOP, MOVE, parm2, 0);
 #endif
                         break;
                     default:        /* L0a81 */
 #ifdef COCO
-                        L3292 (136, 137);
+                        gen (LONGOP, MOVE);
 #else
-                        L3292 (136, 137, 0, 0);
+                        gen (LONGOP, MOVE, 0, 0);
 #endif
                         break;
                 }

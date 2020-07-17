@@ -1,6 +1,6 @@
 /* p2_01.c */
 int main();
-CMDREF *L0787();
+expnode *L0787();
 int L095c();
 int openoutpth();
 int L0a16();
@@ -11,7 +11,7 @@ int L0bc3();
 int L0bf7();
 int L0c2d();
 int L0c6d();
-CMDREF *L0d04();
+expnode *L0d04();
 int L0efd();
 int L121f();
 int L124c();
@@ -49,9 +49,8 @@ int L2a17();
 /* p2_06.c */
 int *getmem();
 int L3203();
-int L3292();
+int gen();
 int get_regname();
-int L39be();
 int L39d9();
 int L3bc2();
 int L3d90();

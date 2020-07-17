@@ -42,10 +42,10 @@ outofmemory (void)
 void
 #ifdef COCO
 L484b (cref, strng)
-    CMDREF *cref;
+    expnode *cref;
     char *strng;
 #else
-L484b (CMDREF *cref, char *strng)
+L484b (expnode *cref, char *strng)
 #endif
 {
     /* 50 bytes static data */
@@ -59,13 +59,13 @@ L484b (CMDREF *cref, char *strng)
 void
 #ifdef COCO
 L487f (cref, parm2)
-    register CMDREF *cref;
+    register expnode *cref;
     char *parm2;
 #else
-L487f ( CMDREF *cref, char *parm2)
+L487f ( expnode *cref, char *parm2)
 #endif
 {
-    L4938 (cref->_lpos, parm2, cref->_cline);
+    L4938 (cref->pnt, parm2, cref->lno);
 }
 
 void
@@ -187,15 +187,15 @@ L4a30:
 void
 #ifdef COCO
 L4a69 (cref)
-    register CMDREF *cref;
+    register expnode *cref;
 #else
-L4a69 (CMDREF *cref)
+L4a69 (expnode *cref)
 #endif
 {
     if (cref)
     {
-        L4a69 (cref->cr_Left);
-        L4a69 (cref->cr_Right);
+        L4a69 (cref->left);
+        L4a69 (cref->right);
         L4a8a (cref);
     }
 }
@@ -203,23 +203,23 @@ L4a69 (CMDREF *cref)
 void
 #ifdef COCO
 L4a8a (cref)
-    register CMDREF *cref;
+    register expnode *cref;
 #else
-L4a8a (CMDREF *cref)
+L4a8a (expnode *cref)
 #endif
 {
     if (cref)
     {
-        switch (cref->vartyp)
+        switch (cref->op)
         {
-            case C_USRLBL:     /* L4a96 */
-                L3203 (cref->cmdval, 13);
+            case NAME:     /* L4a96 */
+                L3203 (cref->val.num, 13);
                 break;
-            case C_DOUBLE:     /* L4a9b */
-                L3203 (cref->cmdval, 8);
+            case FCONST:     /* L4a9b */
+                L3203 (cref->val.num, 8);
                 break;
-            case C_LONG:       /* L4aa0 */
-                L3203 (cref->cmdval, 4);
+            case LCONST:       /* L4aa0 */
+                L3203 (cref->val.num, 4);
                 break;
         }
 
@@ -230,10 +230,10 @@ L4a8a (CMDREF *cref)
 void
 #ifdef COCO
 L4acd (parm1, parm2)
-    CMDREF *parm1;
-    CMDREF *parm2;
+    expnode *parm1;
+    expnode *parm2;
 #else
-L4acd (CMDREF *parm1, CMDREF *parm2)
+L4acd (expnode *parm1, expnode *parm2)
 #endif
 {
     ncpystr (parm1, parm2, 22);

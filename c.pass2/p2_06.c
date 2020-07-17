@@ -21,6 +21,9 @@ static int add512mem (
 );
 #ifdef COCO
 char *br_rel_op ();
+static void transfer ();
+#else
+static void transfer (int parm1, int parm2);
 #endif
 
 /* ************************************************************************ *
@@ -115,7 +118,7 @@ getmem (int siz)
 }
 
 /* ************************************************************ *
- * L31ae () - basically returns  (x + 3) / 4                    *
+ * L31ae () - basically returns  (x + 3) / 4  (mod(4)???        *
  * ************************************************************ */
 
 static int
@@ -145,10 +148,11 @@ add512mem (unsigned int parm1)
     unsigned int var0;
     register int regptr;
 
+    var0 = ((parm1 + 0x7f) >> 7) << 7;
 #ifdef COCO
-    if ( (regptr = sbrk ((var0 = ((parm1 + 0x7f) >> 7) << 7) * 4)) == -1)
+    if ( (regptr = sbrk (var0 *= 4)) == -1)
 #else
-    if ( ! (regptr = malloc (var0 = (((parm1 + 0x7f) >> 7) << 7) * 4)))
+    if ( ! (regptr = sbrk (var0 *= 4)))
 #endif
     {
         return 0;
@@ -200,7 +204,6 @@ L3203 (struct val_data *vdat, int siz)
     }
     else
     {
-        /*((CMDREF *)ptr)->ft_Ty = (*(CMDREF **)var0)->ft_Ty;*/ /* L325f */
         ptr->valaddr = var0->valaddr;
     }
 
@@ -220,256 +223,253 @@ L3203 (struct val_data *vdat, int siz)
 
 void
 #ifdef COCO
-L3292 (parm1, parm2, parm3, parm4)
-    int parm1;
-    int parm2;
-    int parm3;
-    register CMDREF *parm4;
+gen (op, rtype, arg, val)
+    register expnode *val;
+    int op, rtype, arg;
 #else
-L3292 (int parm1, int parm2, int parm3, CMDREF *parm4)
+gen (int op, int rtype, int arg, expnode *val)
         /*  +12        +14        +16          +18 */
 #endif
 {
-    int _reg_name;
-    int var4;
-    int var2;
-    int var0;
+    int reg;
+    expnode *ptr;
+    int temp, value;
 
-    if (parm1 == 136)
+    if (op == LONGOP)
     {
-        L39d9 (parm2, parm3);
+        L39d9 (rtype, arg);
         return;
     }
 
-    if (parm1 == 135)
+    if (op == DBLOP)
     {
-        L3bc2 (parm2, parm3);
+        L3bc2 (rtype, arg);
         return;
     }
 
-    switch (parm1)
+    switch (op)
     {
-        case 122:          /* L32cd */
-            fprintf (OutPath, " pshs %c\n", get_regname (parm2));
+        case PUSH:          /* L32cd */
+            fprintf (OutPath, " pshs %c\n", get_regname (rtype));
             
             if ((D000d -= INTSIZ) < D0017)
             {
                 D0017 = D000d;
             }
             return;
-        case 125:          /* L32fa */
-            L3292 (129, 113, C_INTSQUOT, parm3);    /* recurse into self */
-            parm3 = parm2;
-            parm2 = C_EQEQ;
+        case JMPEQ:          /* L32fa */
+            gen (COMPARE, XREG, CONST, arg);    /* recurse into self */
+            arg = rtype;
+            rtype = EQ;
             /* fall through to next */
-        case 130:          /* L331d */
+        case CNDJMP:          /* L331d */
             prt_bgnfld ("lb");
-            prnt_strng (br_rel_op (parm2));  /* jumping to L3400 */
-            L4414 (parm3);          /* jumping to L3785 */
+            prnt_strng (br_rel_op (rtype));  /* jumping to L3400 */
+            L4414 (arg);          /* jumping to L3785 */
             return;
-        case FT_RETURN:           /* L3334 */
+        case RETURN:           /* L3334 */
             L43d1 ("puls u,pc\n");  /* jumping to L34a1 */
             return;
-        case C_AND:
-        case C_VBAR:       /* L333b */
-        case C_CARET:
-            L3ea4 (parm1, parm3, parm4);
+        case AND:
+        case OR:       /* L333b */
+        case XOR:
+            L3ea4 (op, arg, val);
             return;
-        case C_MULT:       /* L334f */
+        case TIMES:       /* L334f */
             L3e51 ("ccmult");
             return;
-        case 78:           /* L3355 */
+        case UDIV:           /* L3355 */
             L3e51 ("ccudiv");
             return;
-        case C_SLASH:      /* L335b */
+        case DIV:      /* L335b */
             L3e51 ("ccdiv");
             return;
-        case C_LSHIFT:     /* L3361 */
+        case SHL:     /* L3361 */
             L3e51 ("ccasl");
             return;
-        case C_RSHIFT:     /* L3367 */
+        case SHR:     /* L3367 */
             L3e51 ("ccasr");
             return;
-        case 77:           /* L336d */
+        case USHR:           /* L336d */
             L3e51 ("cclsr");
             return;
-        case 76:           /* L3373 */
+        case UMOD:           /* L3373 */
             L3e51 ("ccumod");
             return;
-        case C_PERCENT:    /* L3379 */
+        case MOD:    /* L3379 */
             L3e51 ("ccmod");
             return;
-        case C_MINUS:      /* L3385 */
+        case NEG:      /* L3385 */
             L43d1 ("nega\n negb\n sbca #0");
             return;
-        case C_TILDE:      /* L338c */
+        case COMPL:      /* L338c */
             L43d1 ("coma\n comb");
             return;
-        case 29:           /* L3393 */
+        case GOTO:           /* L3393 */
             prt_bgnfld ("leax ");
             prnt_integer (-D000d);
             prnt_strng (D004f);
             L43dc ();
-        case 124:          /* L33b9 */
+        case JMP:          /* L33b9 */
             prt_bgnfld (D0053);
-            L4414 (parm2);
+            L4414 (rtype);
             return;
-        case 9:            /* L33c8 */
+        case LABEL:            /* L33c8 */
             prt_bgnfld (D0053);
-            L4414 (parm3);
-            L4414 (parm2);
+            L4414 (arg);
+            L4414 (rtype);
             prt_bgnfld ("leas ");
             prnt_integer (D000d);
             prnt_strng (",x\n");
-            L4414 (parm3);
+            L4414 (arg);
             return;
-        case C_PARENS:     /* L3410 */
+        case CALL:     /* L3410 */
             D000f = 4;
 
-            if ( (((CMDREF *)parm3)->vartyp == C_USRLBL) &&
-                   ((var4 = ((CMDREF *)parm3)->cmdval)) )   /* else L3445 */
+            if ( (((expnode *)val)->op == NAME) &&
+                   ((ptr = val->val.sp)) )   /* else L3445 */
             {
                 prt_bgnfld (D0051);
-                prt_label (var4 + 4, 0);
+                prt_label (&ptr->dimptr, 0);
                 return;
             }
 
             prt_bgnfld ("jsr ");
-            L40d0 (parm2, parm3, 0);
+            L40d0 (rtype, arg, 0);
             L43dc ();
             return;
-        case C_CHR2INT:    /* L3466 */
+        case CTOI:    /* L3466 */
             L43d1 ("sex");  /* jumping to L34a1 */
             return;
-        case C_LNG2INT:    /* L346c */
+        case LTOI:    /* L346c */
             prt_bgnfld ("ld");
-            L4085 ('d', parm2, parm3, INTSIZ);
+            L4085 ('d', rtype, arg, INTSIZ);
             return;
-        case 152:          /* L3491 */
+        case IDOUBLE:          /* L3491 */
             L43d1 ("aslb\n rola");  /* jumping to L34a1 */
             return;
-        case 150:          /* L3497 */
+        case HALVE:          /* L3497 */
             L43d1 ("asra\n rorb");  /* jumping to L34a1 */
             return;
-        case 151:          /* L349d */
+        case UHALVE:          /* L349d */
             L43d1 ("lsra\n rorb");
             return;
-        case C_X_RGWRD:    /* L34a6 */
+        case YREG:    /* L34a6 */
             prt_bgnfld ("ldy ");
-            goto L34c2;
-        case C_RGWRD:      /* L34b5 */
+            goto dooff;
+        case UREG:      /* L34b5 */
             prt_bgnfld ("ldu ");
-L34c2:
-            prnt_integer (parm2);
+dooff:
+            prnt_integer (rtype);
             prnt_strng (D004f);
             L43dc ();
             return;
-        case 123:          /* L34de */
+        case LEAX:          /* L34de */
             prt_bgnfld ("leax ");
 
-            switch (parm2)
+            switch (rtype)
             {
-                case 119:   /* L34ed */
-                    if ((_reg_name = ((CMDREF *)parm3)->vartyp) == 148)
+                case NODE:   /* L34ed */
+                    if ((reg = ((expnode *)arg)->op) == YIND)
                     {
-                        _reg_name = 'y';
+                        reg = 'y';
                     }
                     else
                     {
-                        _reg_name = ((_reg_name == 149) ? 'u' : 'x');
+                        reg = ((reg == UIND) ? 'u' : 'x');
                     }
 
-                    fprintf (OutPath, "%d,%c\n", ((CMDREF *)parm3)->cmdval,
-                                                    _reg_name);
+                    fprintf (OutPath, "%d,%c\n", ((expnode *)arg)->val.num,
+                                                    reg);
                     return;
-                case 112:   /* L352a */
-                    fprintf (OutPath, "d,%c\n", get_regname (parm3));
+                case DREG:   /* L352a */
+                    fprintf (OutPath, "d,%c\n", get_regname (arg));
                     return;
             }
     }
 
-    _reg_name = get_regname (parm2);
+    reg = get_regname (rtype);
 
-    if (parm3 == 119)       /* else L36a1 */
+    if (arg == NODE)       /* else L36a1 */
     {
-        if (((CMDREF *)parm4)->vartyp == 133)    /* else L3684 */
+        if (val->op == CTOI)    /* else L3684 */
         {
-            L3292 (parm1, 112, 119, ((CMDREF *)parm4)->cr_Left);
+            gen (op, DREG, NODE, val->left);
 
-            switch (parm1)
+            switch (op)
             {
-                case 117:          /* L364d */
+                case LOAD:          /* L364d */
                     L43d1 ("sex");
                     break;
-                case 79:           /* L3653 */
-                case C_PLUS:       /* L3653 */
+                case RSUB:           /* L3653 */
+                case PLUS:       /* L3653 */
                     L43d1 ("adca #0");
                     break;
-                case C_NEG:        /* L3659 */
+                case MINUS:        /* L3659 */
                     L43d1 ("sbca #0");
                     break;
             }
 
-            parm4->vartyp = 112;
+            val->op = DREG;
             return;
         }
         else
         {
-            if ((parm4->ft_Ty == FT_CHAR) && (parm1 != 127) && (_reg_name != 'x'))
+            if ((val->type == CHAR) && (op != LOADIM) && (reg != 'x'))
             {
-                _reg_name = 'b';
+                reg = 'b';
             }
         }
     }
 
-    switch (parm1)  /* L36a1 */
+    switch (op)  /* L36a1 */
     {
-        case 117:          /* L36a6 */
-            if (parm3 == 119)       /* else L3765 */
+        case LOAD:          /* L36a6 */
+            if (arg == NODE)       /* else L3765 */
             {
-                var0 = parm4->cmdval;
+                value = val->val.num;
                 
-                switch (var2 = parm4->vartyp)
+                switch (temp = val->op)
                 {
-                    case 113:          /* L36be */
-                    case C_X_RGWRD:    /* L36be */
-                    case C_RGWRD:      /* L36be */
-                        if (parm2 != 112)
+                    case XREG:          /* L36be */
+                    case YREG:    /* L36be */
+                    case UREG:      /* L36be */
+                        if (rtype != DREG)
                         {
-                            lea_reg (_reg_name);
+                            lea_reg (reg);
                             fprintf (OutPath, "%d,%c\n",
-                                               var0, get_regname (var2));
+                                               value, get_regname (temp));
                         }
                         else
                         {
-                            L39be (get_regname (var2), C_QUESTION);  /* L36e3 */
+                            transfer (get_regname (temp), QUERY);  /* L36e3 */
 
-                            if (var0 != 0)
+                            if (value != 0)
                             {
-                                L3292 (C_PLUS, 112, C_INTSQUOT, var0);
+                                gen (PLUS, DREG, CONST, value);
                             }
                         }
 
                         return;
-                    case 112:          /* L3715 */
-                        if (parm2 != 112)
+                    case DREG:          /* L3715 */
+                        if (rtype != DREG)
                         {
-                            L39be (C_QUESTION, _reg_name);
+                            transfer ('d', reg);
                         }
 
                         return;
-                    case C_DQUOT:      /* L3729 */
-                        lea_llblpcr (_reg_name, parm4->cmdval);
+                    case STRING:      /* L3729 */
+                        lea_llblpcr (reg, val->val.num);
                         return;
-                    case C_INTSQUOT:   /* L3737 */
-                        parm3 = C_INTSQUOT;
-                        parm4 = var0;
+                    case CONST:   /* L3737 */
+                        arg = CONST;
+                        val = (expnode *)value;
                         break;
                 }
             }
 
             /* L3765 */
-            if ((parm2 == 112) && (parm3 == C_INTSQUOT) && (parm4 == 0))
+            if ((rtype == DREG) && (arg == CONST) && (val == 0))
             {
                 L43d1 ("clra\n clrb");
             }
@@ -480,27 +480,27 @@ L34c2:
             }
 
             return;
-        case 129:          /* L3791 */
-            if ((parm3 == C_INTSQUOT) && (parm4 == 0))
+        case COMPARE:          /* L3791 */
+            if ((arg == CONST) && (val == 0))
             {
-                fprintf (OutPath, " st%c -2,s\n", _reg_name);
+                fprintf (OutPath, " st%c -2,s\n", reg);
                 return;
             }
 
             prt_bgnfld ("cmp");
 
-            if (_reg_name == 'b')
+            if (reg == 'b')
             {
-                _reg_name = 'd';
+                reg = 'd';
             }
 
             goto L382a;
-        case 121:          /* L37d0 */
-            if ((parm3 == 119) && (is_regvar (var2 = parm4->vartyp)))
+        case STORE:          /* L37d0 */
+            if ((arg == NODE) && (is_regvar (temp = val->op)))
             {
-                if (var2 != parm2)
+                if (temp != rtype)
                 {
-                    L39be (_reg_name, get_regname (var2));
+                    transfer (reg, get_regname (temp));
                 }
 
                 return;
@@ -511,37 +511,37 @@ L34c2:
                 goto L382a;
             }
 
-        case C_NEG:        /* L380a */
+        case MINUS:        /* L380a */
             prt_bgnfld ("sub");
             goto L382a;
-        case 79:           /* L3819 */
-            L3292 (C_MINUS NUL3);
-        case C_PLUS:       /* L3823 */
+        case RSUB:           /* L3819 */
+            gen (NEG NUL3);
+        case PLUS:       /* L3823 */
             prt_bgnfld ("add");
 L382a:
-            L4085 (_reg_name, parm3, parm4, 0);
+            L4085 (reg, arg, val, 0);
             break;
-        case 127:          /* L382f */
-            if (parm3 == 119)   /* else break */
+        case LOADIM:          /* L382f */
+            if (arg == NODE)   /* else break */
             {
-                switch (var2 = ((LBLDEF *)(parm4->cmdval))->gentyp)
+                switch (temp = val->val.sp->storage)
                 {
-                    case FT_DIRECT:    /* L3843 */
-                    case FT_DPXTRN:    /* L3843 */
-                    case FT_DPSTATIC:  /* L3843 */
-                        lea_reg (_reg_name);
-                        prnt_chr (C_INCREMENT);
+                    case DIRECT:    /* L3843 */
+                    case EXTERND:    /* L3843 */
+                    case STATICD:  /* L3843 */
+                        lea_reg (reg);
+                        prnt_chr (INCAFT);
 
-                        if (var2 == FT_DPSTATIC)
+                        if (temp == STATICD)
                         {
-                            prt_loclbl (((CMDREF *)parm4->cmdval)->__cr4);
+                            prt_loclbl (val->val.sp->offset);
                         }
                         else
                         {
-                            prt_lblnam (parm4->cmdval + 4);
+                            prt_lblnam (val->val.sp + 4);
                         }
 
-                        L40af (parm4->cr_Nxt);
+                        L40af (val->modifier);
                         prnt_strng (D004d);
                         L43dc ();
                         return;
@@ -549,25 +549,25 @@ L382a:
             }
 
             prt_bgnfld ("lea");
-            L4085 (_reg_name, parm3, parm4, 0);
+            L4085 (reg, arg, val, 0);
             break;
 
-        case 115:          /* L38bd */
-            fprintf (OutPath, " exg %c,%c\n", _reg_name, get_regname (parm3));
+        case EXG:          /* L38bd */
+            fprintf (OutPath, " exg %c,%c\n", reg, get_regname (arg));
             return;
-        case 116:          /* L38dd */
-            lea_reg (_reg_name);
+        case LEA:          /* L38dd */
+            lea_reg (reg);
 
-            switch (parm3)
+            switch (arg)
             {
-                case 112:           /* L38eb */
+                case DREG:           /* L38eb */
                     prnt_strng ("d,");
                     goto L390d;
-                case C_INTSQUOT:    /* L38fa */
-                    prnt_integer (parm4);
-                    prnt_chr (C_RBRACE);
+                case CONST:    /* L38fa */
+                    prnt_integer (val);
+                    prnt_chr (',');
 L390d:
-                    prnt_chr (_reg_name);
+                    prnt_chr (reg);
                     L43dc ();
                     return;
                 default:            /* L391e */
@@ -590,26 +590,26 @@ get_regname (int parm1)
 {
     switch (parm1)
     {
-        case 112:          /* L398d */
+        case DREG:          /* L398d */
             return 'd';
-        case 113:          /* L3992 */
+        case XREG:          /* L3992 */
             return 'x';
-        case C_X_RGWRD:    /* L3997 */
+        case YREG:    /* L3997 */
             return 'y';
-        case C_RGWRD:      /* L399c */
+        case UREG:      /* L399c */
             return 'u';
         default:           /* L39a1 */
             return ' ';
     }
 }
 
-void
+static void
 #ifdef COCO
-L39be (parm1, parm2)
+transfer (parm1, parm2)
     int parm1;
     int parm2;
 #else
-L39be (int parm1, int parm2)
+transfer (int parm1, int parm2)
 #endif
 {
     fprintf (OutPath, " tfr %c,%c\n", parm1, parm2);
@@ -631,15 +631,15 @@ L39d9 (int parm1, int parm2)
     switch (parm1)
     {
         case 110:          /* L39e0 */
-            L3292 (117, 112, 147, FT_CHAR);
+            gen (117, 112, 147, CHAR);
 #ifdef COCO
-            L3292 (122, 112);
-            L3292 (117, 112, 147, 0);
-            L3292 (122, 112);
+            gen (122, 112);
+            gen (117, 112, 147, 0);
+            gen (122, 112);
 #else
-            L3292 (122, 112, 0, 0);
-            L3292 (117, 112, 147, 0);
-            L3292 (122, 112, 0, 0);
+            gen (122, 112, 0, 0);
+            gen (117, 112, 147, 0);
+            gen (122, 112, 0, 0);
 #endif
             break;
         case 139:          /* L3a30 */
@@ -649,79 +649,79 @@ L39d9 (int parm1, int parm2)
             L3e6e ("_lmove");
             D000d -= INTSIZ; /* WARNING D000d _may_ be an int * */
             break;
-        case C_PLUS:       /* L3a42 */
+        case PLUS:       /* L3a42 */
             L3e6e ("_ladd");
             break;
-        case C_NEG:        /* L3a48 */
+        case MINUS:        /* L3a48 */
             L3e6e ("_lsub");
             break;
-        case C_MULT:       /* L3a4e */
+        case TIMES:       /* L3a4e */
             L3e6e ("_lmul");
             break;
-        case C_SLASH:      /* L3a54 */
+        case DIV:      /* L3a54 */
             L3e6e ("_ldiv");
             break;
-        case C_PERCENT:    /* L3a5a */
+        case MOD:    /* L3a5a */
             L3e6e ("_lmod");
             break;
-        case C_AND:        /* L3a60 */
+        case AND:        /* L3a60 */
             L3e6e ("_land");
             break;
-        case C_VBAR:       /* L3a66 */
+        case OR:       /* L3a66 */
             L3e6e ("_lor");
             break;
-        case C_CARET:      /* L3a6c */
+        case XOR:      /* L3a6c */
             L3e6e ("_lxor");
             break;
-        case C_LSHIFT:     /* L3a72 */
+        case SHL:     /* L3a72 */
             L3e6e ("_lshl");
             D000d -= INTSIZ; /* WARNING D000d _may_ be an int * */
             break;
-        case C_RSHIFT:     /* L3a78 */
+        case SHR:     /* L3a78 */
             L3e6e ("_lshr");
             D000d -= INTSIZ; /* WARNING D000d _may_ be an int * */
             break;
-        case C_EQEQ:
-        case C_NOTEQ:
-        case C_GT_EQ:
-        case C_LT_EQ:      /* L3a8b */
-        case C_GT:
-        case C_LT:
+        case EQ:
+        case NEQ:
+        case GEQ:
+        case LEQ:      /* L3a8b */
+        case GT:
+        case LT:
             L3e6e ("_lcmpr");
             break;
-        case C_MINUS:      /* L3a97 */
+        case NEG:      /* L3a97 */
             L3e6e ("_lneg");
             D000d -= LONGSIZ;
             /*L3d90 (parm2, 2);*/
             break;
-        case C_TILDE:      /* L3a9d */
+        case COMPL:      /* L3a9d */
             L3e6e ("_lcompl");
             D000d -= LONGSIZ;
             /*L3d90 (parm2, 2);*/
             break;
-        case C_I2LNG:      /* L3aa3 */
+        case ITOL:      /* L3aa3 */
             L3e6e ("_litol");
             D000d -= LONGSIZ;
             /*L3d90 (parm2, 2);*/
             break;
-        case C_U2LNG:      /* L3aa9 */
+        case UTOL:      /* L3aa9 */
             L3e6e ("_lutol");
             D000d -= LONGSIZ;
             /*L3d90 (parm2, 2);*/
             break;
-        case C_PLUSPLUS:   /* L3aaf */
-        case C_INCREMENT:  /* L3aaf */
+        case INCBEF:    /* L3aaf */
+        case INCAFT:    /* L3aaf */
             L3e6e ("_linc");
             D000d -= LONGSIZ;
             /*L3d90 (parm2, 2);*/
             break;
-        case C_MINMINUS:   /* L3ab5 */
-        case C_DECREMENT:  /* L3ab5 */
+        case DECBEF:   /* L3ab5 */
+        case DECAFT:  /* L3ab5 */
             L3e6e ("_ldec");
             /*L3d90 (parm2, 2);*/
             D000d -= LONGSIZ;
             break;
-        case C_LONG:       /* L3ac8 */
+        case LCONST:       /* L3ac8 */
             L3d90 (parm2, 2);
             break;
         default:           /* L3ad4 */
@@ -748,76 +748,76 @@ L3bc2 (int parm1, int fttyp)
 {
     switch (parm1)
     {
-        case C_DOUBLE:     /* L3bcb */
+        case FCONST:     /* L3bcb */
             L3d90 (fttyp, DBLSIZ/2);
             break;
-        case 110:          /* L3bd9 */
+        case STACK:          /* L3bd9 */
             L3e8d ("_dstack");
             D000d -= DBLSIZ;
             break;
-        case 139:          /* L3bec */
+        case TEST:          /* L3bec */
             fprintf (OutPath, " lda %c,x\n",
-                       ((fttyp == FT_FLOAT) ? '3' : '7'));
+                       ((fttyp == FLOAT) ? '3' : '7'));
             break;
-        case 137:          /* L3c0d */
-            L3e8d ((fttyp == FT_FLOAT) ? "_fmove" : "_dmove");
+        case MOVE:          /* L3c0d */
+            L3e8d ((fttyp == FLOAT) ? "_fmove" : "_dmove");
             D000d += INTSIZ;    /* jump to L3e65 */
             break;
-        case C_PLUS:       /* L3c27 */
+        case PLUS:       /* L3c27 */
             L3e8d ("_dadd");
             D000d += DBLSIZ;
             break;
-        case C_NEG:        /* L3c2d */
+        case MINUS:        /* L3c2d */
             L3e8d ("_dsub");
             D000d += DBLSIZ;
             break;
-        case C_MULT:       /* L3c33 */
+        case TIMES:       /* L3c33 */
             L3e8d ("_dmul");
             D000d += DBLSIZ;
             break;
-        case C_SLASH:      /* L3c39 */
+        case DIV:      /* L3c39 */
             L3e8d ("_ddiv");
             D000d += DBLSIZ;
             break;
-        case C_EQEQ:       /* L3c3f */
-        case C_NOTEQ:      /* L3c3f */
-        case C_GT_EQ:      /* L3c3f */
-        case C_LT_EQ:      /* L3c3f */
-        case C_GT:         /* L3c3f */
-        case C_LT:         /* L3c3f */
+        case EQ:       /* L3c3f */
+        case NEQ:      /* L3c3f */
+        case GEQ:      /* L3c3f */
+        case LEQ:      /* L3c3f */
+        case GT:         /* L3c3f */
+        case LT:         /* L3c3f */
             L3e8d ("_dcmpr");
             D000d += DBLSIZ;
             break;
-        case C_MINUS:      /* L3c52 */
+        case NEG:      /* L3c52 */
             L3e8d ("_dneg");
             break;
-        case C_PLUSPLUS:   /* L3c58 */
-        case C_INCREMENT:  /* L3c58 */
-            L3e8d ((fttyp == FT_FLOAT) ? "_finc" : "_dinc");
+        case INCBEF:   /* L3c58 */
+        case INCAFT:  /* L3c58 */
+            L3e8d ((fttyp == FLOAT) ? "_finc" : "_dinc");
             break;
-        case C_MINMINUS:   /* L3c6a */
-        case C_DECREMENT:  /* L3c6a */
-            L3e8d ((fttyp == FT_FLOAT) ? "_fdec" : "_ddec");
+        case DECBEF:   /* L3c6a */
+        case DECAFT:  /* L3c6a */
+            L3e8d ((fttyp == FLOAT) ? "_fdec" : "_ddec");
             break;
-        case C_TOFLOAT:    /* L3c80 */
+        case DTOF:    /* L3c80 */
             L3e8d ("_dtof");
             break;
-        case C_FLT2DBL:    /* L3c86 */
+        case FTOD:    /* L3c86 */
             L3e8d ("_ftod");
             break;
-        case C_L2DBL:      /* L3c8c */
+        case LTOD:      /* L3c8c */
             L3e8d ("_ltod");
             break;
-        case C_I2DBL:      /* L3c92 */
+        case ITOD:      /* L3c92 */
             L3e8d ("_itod");
             break;
-        case C_U2DBL:      /* L3c98 */
+        case UTOD:      /* L3c98 */
             L3e8d ("_utod");
             break;
-        case C_DBL2LNG:    /* L3c9e */
+        case DTOL:    /* L3c9e */
             L3e8d ("_dtol");
             break;
-        case C_DBL2INT:    /* L3ca4 */
+        case DTOI:    /* L3ca4 */
             L3e8d ("_dtoi");
             break;
         default:           /* L3cb0 */
@@ -941,9 +941,9 @@ void
 L3ea4 (parm1, parm2, cref)
     register int parm1;
     int parm2;
-    CMDREF *cref;
+    expnode *cref;
 #else
-L3ea4 (int parm1, int parm2, CMDREF *cref)
+L3ea4 (int parm1, int parm2, expnode *cref)
        /*   +10        +12            +14 */
 #endif
 {
@@ -951,37 +951,37 @@ L3ea4 (int parm1, int parm2, CMDREF *cref)
     int var2 = 0;
     int var0;
 
-    if (parm2 == 119)       /* else L3ed4 */
+    if (parm2 == NODE)       /* else L3ed4 */
     {
-        var2 = (cref->ft_Ty == FT_CHAR) ? FT_INT : 0;
-        parm2 = cref->vartyp;
+        var2 = (cref->type == CHAR) ? INT : 0;
+        parm2 = cref->op;
         /* Need to fix this...  probably with a cast */
-        cref = cref->cmdval;
+        cref = cref->val.num;
     }
 
-    /*switch (cref->ft_Ty)*/
+    /*switch (cref->type)*/
     switch (parm1)
     {
-        case C_AND:        /* L3ed8 */
+        case AND:        /* L3ed8 */
             strng = "and";
             break;
-        case C_VBAR:       /* L3ede */
+        case OR:       /* L3ede */
             strng = "or";
             break;
-        case C_CARET:      /* L3ee4 */
+        case XOR:      /* L3ee4 */
             strng = "eor";
             break;
     }
 
     switch (parm2)
     {
-        case C_USRLBL:     /* L3f00 */
-        case 148:          /* L3f00 */
-        case 149:          /* L3f00 */
-        case 147:          /* L3f00 */
+        case NAME:     /* L3f00 */
+        case YIND:          /* L3f00 */
+        case UIND:          /* L3f00 */
+        case XIND:          /* L3f00 */
             if (var2)
             {
-                if (parm1 == C_AND)
+                if (parm1 == AND)
                 {
                     L43d1 (D0055);
                 }
@@ -998,23 +998,23 @@ L3ea4 (int parm1, int parm2, CMDREF *cref)
             }
 
             break;
-        case C_INTSQUOT:   /* L3f68 */
+        case CONST:   /* L3f68 */
             switch (var0 = ((int)cref >> 8) & 0xffff)
             {
                 case 0:     /* L3f79 */
-                    if (parm1 == C_AND)
+                    if (parm1 == AND)
                     {
                         L43d1 (D0055);
                     }
 
                     break;
                 case 255:   /* L3f87 */
-                    if (parm1 == C_AND)
+                    if (parm1 == AND)
                     {
                         break;
                     }
 
-                    if (parm1 == C_CARET)
+                    if (parm1 == XOR)
                     {
                         L43d1 ("coma");
                         break;
@@ -1023,26 +1023,26 @@ L3ea4 (int parm1, int parm2, CMDREF *cref)
                     /* fall through to default */
                 default:    /* L3fa0 */
                     prt_bgnfld (strng);       /* L3fa0 */
-                    L4085 ('a', C_INTSQUOT, var0, 0);
+                    L4085 ('a', CONST, var0, 0);
                     break;
             }
 
             switch (var0 = ((int)cref & 0xff))        /* L3fcd */
             {
                 case 0:     /* L3fd6 */
-                    if (parm1 == C_AND)
+                    if (parm1 == AND)
                     {
                         L43d1 ("clrb");
                     }
 
                     break;
                 case 255:   /* L3fe4 */
-                    if (parm1 == C_AND)
+                    if (parm1 == AND)
                     {
                         break;
                     }
 
-                    if (parm1 == C_CARET)
+                    if (parm1 == XOR)
                     {
                         L43d1 ("comb");
                         break;
@@ -1050,7 +1050,7 @@ L3ea4 (int parm1, int parm2, CMDREF *cref)
 
                 default:    /* L4000 */
                     prt_bgnfld (strng);
-                    L4085 ('b', C_INTSQUOT, var0, 0);
+                    L4085 ('b', CONST, var0, 0);
                     break;
             }
 
@@ -1124,70 +1124,70 @@ L40d0 (int parm1, int parm2, int parm3)
 
     switch (parm1 & 0x7fff)
     {
-        register CMDREF *cref;
+        register expnode *cref;
 
-        case 119:          /* L40ee */
+        case NODE:          /* L40ee */
             cref = parm2;
 
-            if (cref->vartyp == C_AMPERSAND)
+            if (cref->op == AMPER)
             {
                 prnt_chr ('#');
-                L40d0 (119, cref->cr_Left, parm3);
+                L40d0 (NODE, cref->left, parm3);
             }
             else
             {
-                L40d0 (cref->vartyp, cref->cmdval, parm3 + cref->cr_Nxt);
+                L40d0 (cref->op, cref->val.num, parm3 + cref->modifier);
             }
 
             return;
-        case C_INTSQUOT:   /* L4125 */
+        case CONST:   /* L4125 */
             prnt_chr ('#');
             prnt_integer (parm2);
             break;
-        case 128:          /* L4134 */
+        case FREG:          /* L4134 */
             prnt_strng ("_flacc");
             L40af (parm3);
             prnt_strng (D004d);
             break;
-        case C_USRLBL:     /* L4154 */
+        case NAME:     /* L4154 */
             if (L4d0_valu = parm2)   /* else L4265 (= break) */
             {
                 switch (var2 = L4d0_valu->ftyp)
                 {
-                    case FT_AUTO:      /* L4165 */
+                    case AUTO:      /* L4165 */
                         prnt_integer (parm2 =
                                 L4d0_valu->rfdat.wrd - D000d + parm3);
                         prnt_strng (D004f);
                         break;
-                    case FT_DPSTATIC:  /* L417d */
+                    case STATICD:  /* L417d */
                         if ( ! D0023)
                         {
                             prnt_chr ((parm1 & 0x8000) ? '>' : '<');
                         }
 
                         /* fall through to next case */
-                    case FT_STATIC:    /* L4199 */
+                    case STATIC:    /* L4199 */
                         prt_loclbl (L4d0_valu->rfdat.wrd);
                         goto L41d2;
-                    case FT_DIRECT:    /* L41a8 */
-                    case FT_DPXTRN:    /* L41a8 */
+                    case DIRECT:    /* L41a8 */
+                    case EXTERND:    /* L41a8 */
                         if ( ! D0023)
                         {
                             prnt_chr ((D0023 & 0x8000) ? '>' : '<');
                         }
 
                         /* fall through to next case */
-                    case FT_EXTERN:    /* L41c4 */
-                    case FT_LSEEK:     /* L41c4 */
+                    case EXTERN:    /* L41c4 */
+                    case EXTDEF:     /* L41c4 */
                         prt_lblnam (L4d0_valu->rfdat.st);
 L41d2:
                         L40af (parm3);
 
                         if ( ! (parm1 & 0x8000))
                         {
-                            if ((D0023) || (var2 == FT_DIRECT) ||
-                                    (var2 == FT_DPXTRN) ||
-                                    (var2 == FT_DPSTATIC))
+                            if ((D0023) || (var2 == DIRECT) ||
+                                    (var2 == EXTERND) ||
+                                    (var2 == STATICD))
                             {
                                 break;
                             }
@@ -1214,21 +1214,21 @@ L41d2:
             }
 
             break;
-        case 147:          /* L426f */
-        case 148:          /* L426f */
-        case 149:          /* L426f */
+        case XIND:          /* L426f */
+        case YIND:          /* L426f */
+        case UIND:          /* L426f */
             prnt_integer (parm2 += parm3);
             prnt_chr (',');
 
             switch (parm1 & 0x7fff)
             {
-                case 147:   /* L428e */
+                case XIND:   /* L428e */
                     prnt_chr ('x');
                     break;
-                case 148:   /* L4293 */
+                case YIND:   /* L4293 */
                     prnt_chr ('y');
                     break;
-                case 149:   /* L4298 */
+                case UIND:   /* L4298 */
                     prnt_chr ('u');
                     break;
                 default:    /* L431a */
@@ -1236,7 +1236,7 @@ L41d2:
             }
 
             break;
-        case 110:          /* L42b6 */
+        case STACK:          /* L42b6 */
             prnt_strng (D004f);
             prnt_strng ("++");
             D000d += INTSIZ;
@@ -1264,25 +1264,25 @@ br_rel_op (int vtype)
     {
         default:           /* L4338 */
             L4823 ("rel op");
-        case C_EQEQ:       /* L4343 */
+        case EQ:       /* L4343 */
             return "eq ";
-        case C_NOTEQ:      /* L4349 */
+        case NEQ:      /* L4349 */
             return "ne ";
-        case C_LT_EQ:      /* L434f */
+        case LEQ:      /* L434f */
             return "le ";
-        case C_LT:         /* L4355 */
+        case LT:         /* L4355 */
             return "lt ";
-        case C_GT_EQ:      /* L435b */
+        case GEQ:      /* L435b */
             return "ge ";
-        case C_GT:         /* L4361 */
+        case GT:         /* L4361 */
             return "gt ";
-        case C_U_LTEQ:     /* L4367 */
+        case ULEQ:     /* L4367 */
             return "ls ";
-        case C_U_LT:       /* L436d */
+        case ULT:       /* L436d */
             return "lo ";
-        case C_U_GTEQ:     /* L4373 */
+        case UGEQ:     /* L4373 */
             return "hs ";
-        case C_U_GT:       /* L4379 */
+        case UGT:       /* L4379 */
             return "hi ";
     }
 }

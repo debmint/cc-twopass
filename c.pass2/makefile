@@ -4,7 +4,8 @@ CC = cc3
 
 $(RDIR)/%.r: %.c
 
-CFLAGS = -i -dCOCO -v=/dd/defs
+#CFLAGS = -i -dCOCO -v=/dd/defs
+CFLAGS = -dCOCO
 PROG = c.pass2
 
 OBJS = p2_01.r p2_02.r p2_03.r p2_04.r \

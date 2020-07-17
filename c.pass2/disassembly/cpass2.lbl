@@ -81,8 +81,10 @@ sendchar equ $30e3 L
 * p2_06.c
 
 getmem equ $310f L
+gen equ $3292 L
 add512mem equ $31bb L
 get_regname equ $3987 L
+transfer equ $39be L
 br_rel_op equ $4332 L
 prt_bgnfld equ $43b8 L
 prnt_chr equ $43e7 L
