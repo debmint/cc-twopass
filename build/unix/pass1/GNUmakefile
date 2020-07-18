@@ -17,6 +17,8 @@ $(PROG): $(OBJS)
 
 $(OBJS): GNUmakefile
 
+cmain.o: pass1.h
+
 clean:
 	$(RM) $(PROG) $(OBJS)
 

@@ -22,10 +22,10 @@ RELS = $(RDIR)/misc.r $(RDIR)/build.r $(RDIR)/optim.r $(RDIR)/stats.r \
 
 STKS = $(RDIR)/build.r $(RDIR)/optim.r $(RDIR)/stats.r \
 	   $(RDIR)/declare.r $(RDIR)/inits.r $(RDIR)/p1_07.r  \
-	   $(RDIR)/lex.r $(RDIR)/pf.r
+	   $(RDIR)/pf.r
 
-NOSTK = $(RDIR)/misc.r $(RDIR)/get.r $(RDIR)/local.r $(RDIR)/cmain.r \
-		$(RDIR)/printf.r
+NOSTK = $(RDIR)/misc.r $(RDIR)/get.r $(RDIR)/local.r $(RDIR)/lex.r \
+		$(RDIR)/cmain.r $(RDIR)/printf.r
 
 ASMS = $(RDIR)/pp8.r $(RDIR)/pf.r
 
