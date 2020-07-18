@@ -1074,14 +1074,8 @@ settype (siz, dimptr, ellist)
                         
                         if (s = sizeup (ptr, tdptr, msize))
                         {       /* else L3e84 */
-                            if (type == STRUCT)
-                            {
-                                tsize = (offset += s);
-                            }
-                            else
-                            {
-                                tsize = (s > tsize ? s : tsize);
-                            }
+                            tsize = (type == STRUCT) ? (offset += s) :
+                                (((s > tsize) ? s : tsize));
                         }
                         else
                         {
@@ -1227,9 +1221,9 @@ declarator (ptr, dptr, bastype)
     else
     {
 #ifdef COCO
-        tempdim = count = p1 = 0;       /* L4036 */
+        /*tempdim*/p = count = p1 = 0;       /* L4036 */
 #else
-        tempdim = p1 = 0;
+        /*tempdim*/p = p1 = 0;
         count = 0;
 #endif
 
@@ -1240,37 +1234,37 @@ declarator (ptr, dptr, bastype)
         {
             dtype = (dtype << 2) + ARRAY;      /* L4049 */
             nxt_word ();
-            p = (dimnode *)addmem (sizeof (dimnode));
+            /*p*/tempdim = (dimnode *)addmem (sizeof (dimnode));
 
             if ((count == 0) && (sym == RBRACK))
             {
-                p->dim = 0;  
+                /*p*/tempdim->dim = 0;  
             }
             else
             {
-                p->dim = constexp (0);  /* L4073 */
+                /*p*/tempdim->dim = constexp (0);  /* L4073 */
             }
 
             if (p1)     /* L407c + 1 */
             {
-                p1->dptr = p;
+                p1->dptr = /*p*/tempdim;
             }
             else
             {
-                tempdim = p;    /* L4088 */
+                /*tempdim = p*/p = tempdim;    /* L4088 */
             }
 
-            p1 = p;
+            p1 = /*p*/tempdim;
             need (RBRACK);
             ++count;
         }
 
         Struct_Union = savmos;
 
-        if (tempdim)
+        if (/*tempdim*/p)
         {
-            p->dptr = *dptr;
-            *dptr = tempdim;
+            /*p*/tempdim->dptr = *dptr;
+            *dptr = /*tempdim*/p;
         }
     }
 
@@ -1382,7 +1376,10 @@ clear (list)
     symnode **list;
 #endif
 {
-    symnode  *p, **pp;
+    union {
+        symnode *p;
+        symnode **pp;
+    } sp;
     symnode  *next;
     char      err[60];
 
@@ -1406,24 +1403,24 @@ clear (list)
                 break;
         }
 
-        pp = (symnode **)this->downptr;     /* L426e */
+        sp.pp = (symnode **)this->downptr;     /* L426e */
 
-        if ((pp > LblPtrLow) && (pp < LblPtrEnd))  /* else L4289 */
+        if ((sp.pp > LblPtrLow) && (sp.pp < LblPtrEnd))  /* else L4289 */
         {
             /* Make this the base of the current LblTree ?? */
             pullup (this);      /* go to L42be */
         }
         else
         {
-            if ((this == *pp))          /* L4289 */
+            if ((this == *sp.pp))          /* L4289 */
             {
-                *pp = this->hlink;
+                *sp.pp = this->hlink;
             }
             else
             {
-                for (p = *pp; p->hlink != this; p = p->hlink);
+                for (sp.pp = *sp.pp; sp.p->hlink != this; sp.p = sp.p->hlink);
             
-                p->hlink = this->hlink;    /*L42a2 */
+                sp.p->hlink = this->hlink;    /*L42a2 */
             }
 
             this->hlink = freesym;      /* L42b7 */

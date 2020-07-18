@@ -55,9 +55,9 @@ getnxtch ()
 char
 prepln ()
 {
-    int v6;
+    int lno;
     int _prepcod;
-    int _linpos;
+    int x;
     int v0;
 
     if (D001d == 0)
@@ -112,7 +112,7 @@ prepln ()
                     }
                     
                 case 'P':   /* root startup*/     /* L640c */
-                    strcpy (D02ee, inpbuf);
+                    strcpy (temp, inpbuf);
 
                     if ( !gtnxtlin())
                     {
@@ -121,36 +121,36 @@ prepln ()
 
                     prntstar ();
                     fprintf (outpth, " psect %s,0,0,%d,0,0\n",
-                                        D02ee, a_toi (inpbuf)) ;
+                                        temp, a_toi (inpbuf)) ;
                     prntstar ();
-                    fprintf (outpth, " nam %s\n", D02ee);
+                    fprintf (outpth, " nam %s\n", temp);
                     continue;
                 case '0':     /* L6464 */  /* '0' */
                 case '1':     /* L6464 */  /* '1' */
-                    strcpy (D02ee, inpbuf);
+                    strcpy (temp, inpbuf);
 
                     if ( !gtnxtlin())
                     {
                         return -1;
                     }
 
-                    v6 = a_toi (inpbuf);
+                    lno = a_toi(inpbuf);
 
                     if ( !gtnxtlin())
                     {
                         return -1;
                     }
 
-                    _linpos = a_toi (inpbuf);
+                    x = a_toi(inpbuf);
 
                     if ( !gtnxtlin())
                     {
                         return -1;
                     }
 
-                    if (v6)
+                    if (lno)
                     {
-                        printf ("%s : line %d ", CurFilNam, v6);
+                        printf ("%s : line %d ", CurFilNam, lno);
                     }
                     else
                     {
@@ -159,11 +159,11 @@ prepln ()
 
                     printf ("**** %s ****\n", inpbuf);
 
-                    if (*D02ee)
+                    if (temp[0])
                     {
-                        puts (D02ee);
+                        puts (temp);
 
-                        while ( _linpos--)
+                        while ( x--)
                         {
                             putc (' ', stdout);
                         }
@@ -200,16 +200,16 @@ register char *cptr;
 #endif
 {
     int c_cod;
-    int _sum;
+    int n;
 
-    _sum = 0;
+    n = 0;
 
     while ((_chcodes[(c_cod =*(cptr++))]) == '\x6b')
     {
-        _sum = ((_sum * 10) + (c_cod - '0'));
+        n = (n * 10) + (c_cod - '0');
     }
 
-    return _sum;
+    return n;
 }
 
 /* *********************************************************** *
@@ -219,15 +219,8 @@ register char *cptr;
  *          NULL on true read error                            *
  * *********************************************************** */
 
-#ifndef COCO
-
-char *
-gtnxtlin (void)
-#else
-
 char *
 gtnxtlin ()
-#endif
 {
     int _curch;
     register char *_line = inpbuf;

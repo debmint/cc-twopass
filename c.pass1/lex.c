@@ -36,7 +36,7 @@ extern char _chcodes[];
 typedef union {
     DBLETYPE *dpt;
     LONGTYPE *lpt;
-    symnode * spt;
+    symnode  *spt;
 } rgpts;
 
 /* ************************************************************ *
@@ -101,15 +101,17 @@ nxt_word ()
             fget_lbl (name);     /* Read in label name from file */
             ptr.spt = FindLbl (name);
 
-            if ((sym = (ptr.spt->type == KEYWORD)))
+            if ((sym = ptr.spt->type) == KEYWORD)
             {
                 /* All builtins except sizeof return unchanged */
 
-                if ((symval = (ptr.spt->storage == SIZEOF)))
+                if ((symval = ptr.spt->storage) == SIZEOF)
                 {
-                   sym = SIZEOF;
-                   symval = EXTERN;        /* 14 */
+                    sym = SIZEOF;
+                    symval = EXTERN;        /* 14 */
                 }
+
+                return;
             }
             else
             {

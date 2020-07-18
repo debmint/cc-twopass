@@ -6,19 +6,22 @@
 
 /* This file is an exact match with original */
 
-#ifdef COCO
-static int ilist ();
-#else
+#ifndef COCO
 #   ifndef direct
 #       define direct
 #   endif
-static int ilist (int type, register symnode *ptr, symnode *list, int level);
 #endif
 
 direct int datstring,
            datflag;
 
 #include "pass1.h"
+
+#ifdef COCO
+static int ilist ();
+#else
+static int ilist (int type, register symnode *ptr, dimnode *list, int level);
+#endif
 
 /* ************************************************************ *
  * initialize () - Outputs a label name when there is an assignment  *

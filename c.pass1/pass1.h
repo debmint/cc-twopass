@@ -116,7 +116,7 @@ GLOBAL int D02d6;
 GLOBAL int D02d8;
 GLOBAL char D02da[10];
 GLOBAL char D02e4[10];
-GLOBAL char D02ee[256],
+GLOBAL char temp[256],
             CurFilNam[30];
 GLOBAL symnode *NStrLbls[128],
               *StrctLbls[128];
