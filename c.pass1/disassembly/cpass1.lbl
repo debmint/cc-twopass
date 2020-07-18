@@ -60,6 +60,7 @@ _stbot equ $02d0 D
 errno equ $02d2 D
 deflabel equ $02d4 D
 
+temp equ $02ee D
 CurFilNam equ $03ee D
 NStrLbls equ $040c D
 StrctLbls equ $050c D
@@ -201,7 +202,10 @@ declist equ $3b5a L
 setclass equ $3be6 L
 settype equ $3c35 L
 declarator equ $3f8a L
-shiftin equ #40ca L
+shiftin equ $40ca L
+sizeup equ $4100 L
+getsize equ $418a L
+clear equ $4204 L
 sizundef equ $42d1 L
 noidentf equ $42df L
 defobject equ $4772 L
