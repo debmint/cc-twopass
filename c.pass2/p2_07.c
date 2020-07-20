@@ -25,7 +25,7 @@ L4823 (strng)
 L4823 (char *strng)
 #endif
 {
-    L484b (D0282, strng);
+    comperr (D0282, strng);
 }
 
 void
@@ -41,19 +41,19 @@ outofmemory (void)
 
 void
 #ifdef COCO
-L484b (cref, strng)
+comperr (cref, strng)
     expnode *cref;
     char *strng;
 #else
-L484b (expnode *cref, char *strng)
+comperr (expnode *cref, char *strng)
 #endif
 {
     /* 50 bytes static data */
-    char var0[50];
+    char buf[50];
 
-    strcpy (var0, "compiler error - ");
-    strcat (var0, strng);
-    L487f (cref, var0);
+    strcpy (buf, "compiler error - ");
+    strcat (buf, strng);
+    L487f (cref, buf);
 }
 
 void
@@ -65,7 +65,7 @@ L487f (cref, parm2)
 L487f ( expnode *cref, char *parm2)
 #endif
 {
-    L4938 (cref->pnt, parm2, cref->lno);
+    showerr (cref->pnt, parm2, cref->lno);
 }
 
 void
@@ -78,7 +78,7 @@ L4896 (int parm1, long lng)
 {
     register struct lng_something *lngptr;
 
-    if ((D02da = (D02da + 1) % 10) == D02dc)    /* else LL48c5 */
+    if ((D02da = ((D02da + 1) % 10)) == D02dc)    /* else LL48c5 */
     {
         D02dc = (D02dc + 1) % 10;
     }
@@ -134,40 +134,40 @@ lng2_flacc (int parm1)
 }
 
 #ifdef COCO
-L4938 (srclin, parm2, lngptr)
-    int srclin;
-    char *parm2;
-    long *lngptr;
+showerr (linpos, errstr, fpos)
+    int linpos;
+    char *errstr;
+    long *fpos;
 #else
-L4938 (int srclin, char *parm2, long *lngptr)
+showerr (int linpos, char *errstr, long *fpos)
 #endif
 {
-    long lngval;
-    char var0;
+    long pos;
+    char c;
 
     printf ("%s: ", SrcFilNam);
     /* What's the 3rd parameter?  Probably gcc will give warning */
-    printf ("line %d  ", lngptr, srclin);
-    printf ("****  %s  ****\n", parm2);
+    printf ("line %d  ", fpos, linpos);
+    printf ("****  %s  ****\n", errstr);
     
     if ((!(D02de) && !(D02de = fopen (D0280, "r"))) || 
-            ((lngval = *lng2_flacc (lngptr)) == -1))
+            ((pos = *lng2_flacc (fpos)) == -1))
     {
             goto L4a30;
     }
 
 #ifdef COCO
-    fseek (D02de, lngval,0);
+    fseek (D02de, pos,0);
 #else
-    fseek (D02de, lngval, SEEK_SET);
+    fseek (D02de, pos, SEEK_SET);
 #endif
 
     do
     {
-        putc ((var0 = getc (D02de)), stdout);       /* L49cf */
-    } while (var0 != '\n');
+        putc ((c = getc (D02de)), stdout);       /* L49cf */
+    } while (c != '\n');
 
-    while ((srclin--) > 0)
+    while ((linpos--) > 0)
     {
         putc (' ', stdout);         /* L49f2 */
     }
@@ -176,7 +176,7 @@ L4938 (int srclin, char *parm2, long *lngptr)
     putc ('\n', stdout);
 
 L4a30:
-    if (++D0009 > 30)
+    if (++errcount > 30)
     {
         fflush (stdout);
         fprintf (stderr, "too many errors - ABORT\n");

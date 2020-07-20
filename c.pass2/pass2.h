@@ -49,9 +49,9 @@ GLOBAL direct int D0001
 GLOBAL direct FILE *InPath,
                    *OutPath;
 GLOBAL direct int D0007;
-GLOBAL direct int D0009;
+GLOBAL direct int errcount;
 GLOBAL direct int D000b;
-GLOBAL direct int D000d;
+GLOBAL direct int sp;
 GLOBAL direct int D000f;
 GLOBAL direct int NoStkChk,
                   DoProfile;
@@ -89,7 +89,7 @@ GLOBAL int D004d
 #endif
 ;
 
-GLOBAL int D004f
+GLOBAL int spind
 #ifdef MAIN
 = ",s"
 #endif

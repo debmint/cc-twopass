@@ -45,7 +45,7 @@ L2a17 (expnode *cref)
             break;
         case UTOD:      /* L2a3a */
         case ITOD:      /* L2a3a */
-            L0bc3 (cref->left);
+            lddexp (cref->left);
 L2a45:
 #ifdef COCO
             gen (DBLOP, var6);
@@ -73,7 +73,7 @@ L2a57:
             cref->val.num = 0;
             break;
         case QUERY:   /* L2aa0 */
-            L12e8 (cref, L29fc);
+            doquery (cref, L29fc);
             goto L2c34;
         case INCBEF:   /* L2aaf */
         case DECBEF:
@@ -108,7 +108,7 @@ L2a57:
 #endif
              goto L2a57;
         case CALL:     /* L2b42 */
-            L1364 (cref);
+            docall (cref);
             goto L2a57;
         case EQ:
         case NEQ:
@@ -196,7 +196,7 @@ L2c34:
                 goto L2ba5;
             }
 
-            L484b (cref, "floats");
+            comperr (cref, "floats");
     }
 }
 

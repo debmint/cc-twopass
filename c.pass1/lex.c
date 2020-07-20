@@ -605,8 +605,8 @@ addmem (siz)
  *      it to the appropriate number value                  *
  * Returns: the FT_* type on success, 0 on failure          *
  * ******************************************************** */
-#ifndef COCO
 
+#ifndef COCO
 int
 number (int p1, void *dest_val)
 {
@@ -909,15 +909,8 @@ do_squot ()
     return;
 }
 
-#ifndef COCO
-
 void 
-do_dquot (void)
-#else
-
-void
 do_dquot ()
-#endif
 {
     switch (datstring)
     {
@@ -986,18 +979,18 @@ do_dquot ()
 
 void
 #ifndef COCO
-addstrchr (int p1)
+addstrchr (int ch)
 #else
-addstrchr (p1)
-    int p1;
+addstrchr (ch)
+    int ch;
 #endif
 {
-    if ((p1 == 0) || (p1 == '\\'))
+    if ((ch == 0) || (ch == '\\'))
     {
         putc ('\\', strsFP);
     }
 
-    putc ( p1, strsFP);
+    putc ( ch, strsFP);
     ++stringlen;
 }
 
@@ -1057,14 +1050,10 @@ dobkslsh ()
         
         while ((pt = is_hex (CurChr)) && (_lngth++ < 2))
         {
-            /* L60cd */ /* ????????????????? */
-            /*_curch = (_curch << 4) + (pt - ((pt < 'A') ? '0' : ('A' - 10)));*/
             _curch = (_curch << 4) +
                         ((pt < 'A') ? (pt - '0') : pt - ('A' - 10));
             getnxtch ();
         }
-
-        /*return _curch;*/
     }
     else
     {
@@ -1100,36 +1089,24 @@ dobkslsh ()
     return _curch;
 }
 
-#ifndef COCO
-
 int
+#ifndef COCO
 is_octal (char ch)
 #else
-
-int 
 is_octal (ch)
-char ch;
+    char ch;
 #endif
 {
-    /*if ((ch <= '7') && (ch >= '0'))
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }*/
     return ((ch <= '7') && (ch >= '0'));
 }
 
-#ifndef COCO
-
-is_hex (char ch)
-#else
 
 int 
+#ifndef COCO
+is_hex (char ch)
+#else
 is_hex (ch)
-char ch;
+    char ch;
 #endif
 {
     if ((_chcodes[ch] == 0x6b) ||

@@ -8,15 +8,15 @@ $(RDIR)/%.r: %.c
 CFLAGS = -dCOCO
 PROG = c.pass2
 
-OBJS = p2_01.r p2_02.r p2_03.r p2_04.r \
-	   printf.r p2_06.r p2_07.r p2_08.r
+OBJS = p2_01.r tranexp.r p2_03.r p2_04.r \
+	   printf.r codgen.r p2_07.r p2_08.r
 
-RELS = $(RDIR)/p2_01.r $(RDIR)/p2_02.r $(RDIR)/p2_03.r $(RDIR)/p2_04.r \
-	   $(RDIR)/printf.r $(RDIR)/p2_06.r $(RDIR)/p2_07.r $(RDIR)/p2_08.r
+RELS = $(RDIR)/p2_01.r $(RDIR)/tranexp.r $(RDIR)/p2_03.r $(RDIR)/p2_04.r \
+	   $(RDIR)/printf.r $(RDIR)/codgen.r $(RDIR)/p2_07.r $(RDIR)/p2_08.r
 
-STKS = $(RDIR)/p2_01.r $(RDIR)/p2_02.r $(RDIR)/p2_03.r $(RDIR)/p2_04.r
+STKS = $(RDIR)/p2_01.r $(RDIR)/tranexp.r $(RDIR)/p2_03.r $(RDIR)/p2_04.r
 	   
-NOSTK = $(RDIR)/printf.r $(RDIR)/p2_06.r $(RDIR)/p2_07.r $(RDIR)/p2_08.r
+NOSTK = $(RDIR)/printf.r $(RDIR)/codgen.r $(RDIR)/p2_07.r $(RDIR)/p2_08.r
 
 $(PROG): $(STKS) $(NOSTK)
 	cd $(RDIR);$(CC) $(LFLAGS) $(OBJS) -f=$(PROG); cd $(SRCDIR)

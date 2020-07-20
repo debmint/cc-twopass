@@ -14,7 +14,7 @@ prt_fdb ()
 prt_fdb (void)
 #endif
 {
-    prt_bgnfld ("fdb ");
+    ot ("fdb ");
 }
 
 void
@@ -30,7 +30,7 @@ prt_funcbegin (char *title, char *funcnam, int parm3, int parm4)
 {
     fprintf (OutPath, " ttl %.8s\n", title);
     prt_label (title, funcnam);
-    D0017 = D000f = D000d = 0;
+    D0017 = D000f = sp = 0;
     L43d1 ("pshs u");
 
     if ( ! NoStkChk)
@@ -40,7 +40,7 @@ prt_funcbegin (char *title, char *funcnam, int parm3, int parm4)
 
     if (DoProfile)
     {
-        prt_bgnfld ("leax ");
+        ot ("leax ");
         prt_loclbl (parm4);
         prnt_strng (",pcr\n pshs x\n leax ");
         prt_lblnam (title);

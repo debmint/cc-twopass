@@ -7,18 +7,19 @@
 #include "pass2.h"
 
 #ifdef COCO
-expnode *L0d04 ();
+expnode *tranexp ();
+#else
 #endif
 
 void
 #ifdef COCO
-L0bc3 (cref)
+lddexp (cref)
     register expnode *cref;
 #else
-L0bc3 (expnode *cref)
+lddexp (expnode *cref)
 #endif
 {
-    L0c2d (cref);
+    loadexp (cref);
 
     if (cref->op != DREG)
     {
@@ -29,27 +30,27 @@ L0bc3 (expnode *cref)
 
 void
 #ifdef COCO
-L0bf7 (cref)
+ldxexp (cref)
     register expnode *cref;
 #else
-L0bf7 (expnode *cref)
+ldxexp (expnode *cref)
 #endif
 {
-    L1c1d (cref);
+    tranxexp (cref);
 
-    if (cref->op != DREG)
+    if (cref->op != XREG)
     {
-        gen (LOAD, DREG, NODE, cref);
-        cref->op = DREG;
+        gen (LOAD, XREG, NODE, cref);
+        cref->op = XREG;
     }
 }
 
 void
 #ifdef COCO
-L0c2d (cref)
+loadexp (cref)
     register expnode *cref;
 #else
-L0c2d (expnode *cref)
+loadexp (expnode *cref)
 #endif
 {
     switch (cref->type)
@@ -62,29 +63,29 @@ L0c2d (expnode *cref)
             L29fc (cref);
             break;
         default:           /* L0c49 */
-            L0d04 (cref);
-            L0c6d (cref);
+            tranexp (cref);
+            doload (cref);
     }
 }
 
 void
 #ifdef COCO
-L0c6d (cref)
+doload (cref)
     register expnode *cref;
 #else
-L0c6d ( expnode *cref)
+doload ( expnode *cref)
 #endif
 {
     switch (cref->op)
     {
         case STRING:      /* L0c7c */
-            gen (LOAD, DREG, NODE, cref);
-            cref->op = DREG;
+            gen (LOAD, XREG, NODE, cref);
+            cref->op = XREG;
             cref->val.num = 0;
             break;
         case AMPER:    /* L0c9e */
-            gen (LOADIM, DREG, NODE, cref->left);
-            cref->op = DREG;
+            gen (LOADIM, XREG, NODE, cref->left);
+            cref->op = XREG;
             break;
         case XREG:          /* L0d02 */
         case DREG:          /* L0d02 */
@@ -96,17 +97,17 @@ L0c6d ( expnode *cref)
 #ifdef COCO
 L0cd9:
 #endif
-            cref->op = 112;
+            cref->op = DREG;
             break;
     }
 }
 
 expnode *
 #ifdef COCO
-L0d04 (cref)
+tranexp (cref)
     register expnode *cref;
 #else
-L0d04 (expnode *cref)
+tranexp (expnode *cref)
 #endif
 {
     int _vartype;
@@ -115,10 +116,10 @@ L0d04 (expnode *cref)
     {
         expnode *_vrRight = cref->right;
 
-        L4a69 (L0d04 (cref->left));
+        L4a69 (tranexp (cref->left));
         L4acd (_vrRight, cref);
         L4a8a (_vrRight);
-        L0d04 ( cref);      /* go to L0ef7 */
+        tranexp ( cref);      /* go to L0ef7 */
     }
     else
     {
@@ -136,7 +137,7 @@ L0d04 (expnode *cref)
             {
                 if (L4af7 (_vartype))
                 {
-                    L0efd (_vartype, cref); /* go to L0ef7 */
+                    tranbinop (_vartype, cref); /* go to L0ef7 */
                 }
                 else
                 {               /* L0d92 */
@@ -150,10 +151,10 @@ L0d04 (expnode *cref)
                         case CONST:
                             break;
                         case ASSIGN:      /* L0d97 */
-                            L1567 (cref);
+                            doass (cref);
                             break;
                         case CTOI:    /* L0d9f */
-                            L0d04 (cref->left);
+                            tranexp (cref->left);
                             break;
                         case LTOI:    /* L0da9 */
                             L2520 (cref->left);
@@ -174,16 +175,16 @@ L0d04 (expnode *cref)
                             cref->op = DREG;
                             break;
                         case STAR:   /* L0ddf */
-                            L1953 (cref);
+                            dostar (cref);
                             break;
                         case NOT:    /* L0de6 */
                         case DBLAND:
                         case DBLOR:
-                            L124c (cref);
+                            dobool (cref);
                             break;
                         case COMPL:      /* L0ded */
                         case NEG:
-                            L0bc3 (cref->left);
+                            lddexp (cref->left);
 #ifdef COCO
                             gen (_vartype);
 #else
@@ -192,26 +193,26 @@ L0d04 (expnode *cref)
                             cref->op = 112;
                             break;
                         case QUERY:    /* L0e01 */
-                            L12e8 (cref, L0bc3);
+                            doquery (cref, lddexp);
                             cref->op = 112;
                             break;
                         case INCBEF:    /* L0e16 */
                         case INCAFT:
                         case DECBEF:
                         case DECAFT:
-                            L1a9a (cref, 112);
+                            dotoggle (cref, 112);
                             break;
                         case CALL:     /* L0e22 */
-                            L1364 (cref);
+                            docall (cref);
                             break;
                         default:           /* L0e2c */
                             if (_vartype >= ASSPLUS)   /* 160 */
                             {
-                                L16cb ( cref, _vartype);
+                                assop ( cref, _vartype);
                             }
                             else
                             {
-                                L484b (cref, "translation");
+                                comperr (cref, "translation");
                                 printf ("%x\n", _vartype);
                             }
 
@@ -227,37 +228,37 @@ L0d04 (expnode *cref)
 
 void
 #ifdef COCO
-L0efd (vtyp, cref)
-    int vtyp;
-    expnode *cref;
+tranbinop (op, node)
+    int op;
+    expnode *node;
 #else
-L0efd (int vtyp, expnode *cref)
+tranbinop (int op, expnode *node)
 #endif
 {
     /* 6 bytes static vars */
-    expnode *_rfRt;  /* v4 */
+    register expnode *lhs;
+    expnode *rhs;  /* v4 */
     int v2;
     unsigned int var0;
 
-    register expnode *rfLft;
     
-    rfLft = cref->left;
-    _rfRt = cref->right;
+    lhs = node->left;
+    rhs = node->right;
 
-    /* First modify vtyp if necessary */
+    /* First modify op if necessary */
 
-    if (rfLft->type == UNSIGN)
+    if (lhs->type == UNSIGN)
     {
-        switch (vtyp)
+        switch (op)
         {
             case DIV:      /* L0f1d */
-                vtyp = UDIV;
+                op = UDIV;
                 break;
             case MOD:    /* L0f22 */
-                vtyp = UMOD;
+                op = UMOD;
                 break;
             case SHR:     /* L0f27 */
-                vtyp = USHR;
+                op = USHR;
                 break;
             default:           /* L0f73 */
                 break;
@@ -265,14 +266,14 @@ L0efd (int vtyp, expnode *cref)
     }
     else
     {
-        switch (vtyp)
+        switch (op)
         {
             case PLUS:       /* L0f43 */
             case MINUS:        /* L0f43 */
-                if ((rfLft->op == AMPER) && 
-                            (_rfRt->op != CONST))
+                if ((lhs->op == AMPER) && 
+                            (rhs->op != CONST))
                 {
-                    L1c1d (cref);
+                    tranxexp (node);
                     D0019 = 0;
                     return;
                 }
@@ -281,77 +282,76 @@ L0efd (int vtyp, expnode *cref)
         }
     }
 
-    switch (vtyp)
+    switch (op)
     {                   /* L120d = "break" */
         case MINUS:        /* L0f78 */
-            if ( ! L22ca (_rfRt) )    /* else L0faa */
+            if ( ! L22ca (rhs) )    /* else L0faa */
             {
-                L0c2d (_rfRt);
+                loadexp (rhs);
 #ifdef COCO
-                gen (122, _rfRt->op);
+                gen (122, rhs->op);
 #else
-                gen (122, _rfRt->op, 0, 0);
+                gen (122, rhs->op, 0, 0);
 #endif
-                _rfRt->op = 110;
-                L0bc3 (rfLft);
+                rhs->op = 110;
+                lddexp (lhs);
             }
             else
             {
-                L0bc3 (rfLft);      /* L0faa */
-                L0d04 (_rfRt);
+                lddexp (lhs);      /* L0faa */
+                tranexp (rhs);
             }
 
-            gen (MINUS, DREG, NODE, _rfRt);
+            gen (MINUS, DREG, NODE, rhs);
             break; /* go to L120d */
         case AND:
         case OR:
         case XOR:        /* L0fce */
         case PLUS:
-            if ( ((L22ca (rfLft)) && ! (L22ca (_rfRt))) ||
-                    (rfLft->op == CONST))
+            if ( ((L22ca (lhs)) && ! (L22ca (rhs))) || (lhs->op == CONST))
             {
-                expnode *__tmpref = rfLft;
+                expnode *__tmpref = lhs;
 
-                rfLft = _rfRt;
-                _rfRt = __tmpref;
+                lhs = rhs;
+                rhs = __tmpref;
             }
 
-            if (is_regvar (rfLft->op))      /* L0ff6 */   /* else L1021 */
+            if (is_regvar (lhs->op))      /* L0ff6 */   /* else L1021 */
             {
 #ifdef COCO
-                gen (122, rfLft->op);     /* L1003 */
+                gen (122, lhs->op);     /* L1003 */
 #else
-                gen (122, rfLft->op, 0, 0);
+                gen (122, lhs->op, 0, 0);
 #endif
-                L0bc3 ( _rfRt);
-                _rfRt->op = 110;        /* go to 1052 */
+                lddexp ( rhs);
+                rhs->op = 110;        /* go to 1052 */
             }
             else
             {
-                L0bc3 (rfLft);      /* L1021 */
+                lddexp (lhs);      /* L1021 */
 
-                if ( ! L22ca (_rfRt))
+                if ( ! L22ca (rhs))
                 {
 #ifdef COCO
                     gen (122, 112);
 #else
                     gen (122, DREG, 0, 0);
 #endif
-                    L0bc3 ( _rfRt);
-                    _rfRt->op = 110;        /* go to 1052 */
+                    lddexp ( rhs);
+                    rhs->op = 110;        /* go to 1052 */
                 }
                 else
                 {
-                    L0d04 (_rfRt);      /* L1038 */
+                    tranexp (rhs);      /* L1038 */
 
-                    if (vtyp != PLUS)
+                    if (op != PLUS)
                     {
-                        L152d ( _rfRt);
+                        getinx ( rhs);
                     }
                 }
             }
 
-            gen (vtyp, DREG, NODE, _rfRt);
+            gen (op, DREG, NODE, rhs);
             break;
         case EQ:       /* L106d */
         case NEQ:
@@ -363,22 +363,22 @@ L0efd (int vtyp, expnode *cref)
         case ULT:
         case ULEQ:
         case UGEQ:
-            L124c (cref);
+            dobool (node);
             break;
         case 77:           /* L1077 */
         case SHR:
         case SHL:
-            if ((_rfRt->op) == CONST)      /* else L10db */
+            if ((rhs->op) == CONST)      /* else L10db */
             {
-                var0 = _rfRt->val.num;
+                var0 = rhs->val.num;
 L108b:
                 if (var0 <= STRUCT)  /* 4 */     /* else L10db */
                 {
-                    L0bc3 ( rfLft);
+                    lddexp ( lhs);
 
                     while (var0--)
                     {
-                        switch (vtyp)
+                        switch (op)
                         {
                             case SHL:      /* L10a2 */
 #ifdef COCO
@@ -412,44 +412,44 @@ L108b:
 
             goto L1129;
         case TIMES:       /* L10df */
-            if (rfLft->op == CONST)    /* else L10f3 */
+            if (lhs->op == CONST)    /* else L10f3 */
             {
                 expnode *_tmpref;
 
-                _tmpref = rfLft;
-                rfLft = _rfRt;
-                _rfRt = _tmpref;
+                _tmpref = lhs;
+                lhs = rhs;
+                rhs = _tmpref;
             }       /* fall through to next case */
         case UDIV:           /* L10f3 */
-            if ((_rfRt->op == CONST) &&
-                        (var0 = L121f ( _rfRt->val.num)))    /* else L112b */
+            if ((rhs->op == CONST) &&
+                        (var0 = isashift ( rhs->val.num)))    /* else L112b */
             {
-                _rfRt->val.num = var0;
+                rhs->val.num = var0;
 
-                vtyp = (vtyp == TIMES) ? SHL : USHR;    /* L1122 */
+                op = (op == TIMES) ? SHL : USHR;    /* L1122 */
                 goto L108b;
             }
         case DIV:      /* L112b */
         case 76:           /* L112b */
         case MOD:    /* L112b */
 L1129:
-            L0c2d (rfLft);
+            loadexp (lhs);
 #ifdef COCO
-            gen (PUSH, rfLft->op);
+            gen (PUSH, lhs->op);
 #else
-            gen (PUSH, rfLft->op, 0, 0);
+            gen (PUSH, lhs->op, 0, 0);
 #endif
-            L0bc3 ( _rfRt);
+            lddexp ( rhs);
 #ifdef COCO
-            gen (vtyp);
+            gen (op);
 #else
-            gen (vtyp, 0, 0, 0);
+            gen (op, 0, 0, 0);
 #endif
             break;
         default:           /* L1155 */
-            L484b (cref, "binary op.");
+            comperr (node, "binary op.");
             break;
-    }   /* end switch vtyp */
+    }   /* end switch op */
 
 #ifdef COCO
     /* Following jump-label is not needed - vestige from the old source */
@@ -457,15 +457,15 @@ L120d:
 #endif
     D0019 = 0;
 L1213:
-    cref->op = DREG;
+    node->op = DREG;
 }
 
 int
 #ifdef COCO
-L121f (cmd_val)
+isashift (cmd_val)
     int cmd_val;
 #else
-L121f (int cmd_val)
+isashift (int cmd_val)
 #endif
 {
     register int _count = 0;
@@ -483,85 +483,85 @@ L121f (int cmd_val)
 
 void
 #ifdef COCO
-L124c (cref)
+dobool (cref)
     register expnode *cref;
 #else
-L124c (expnode *cref)
+dobool (expnode *cref)
 #endif
 {
-    int var2;
-    int var0;
+    int l1;
+    int l2;
 
-    L1f13 (cref, (var2 = ++D000b), (var0 = ++D000b), 1);
-    L4414 (var2);
+    L1f13 (cref, (l1 = ++D000b), (l2 = ++D000b), 1);
+    L4414 (l1);
     gen (LOAD, DREG, CONST, 1);
 
 #ifdef COCO
-    gen (JMP, (var0 = ++D000b), 1);
+    gen (JMP, (l2 = ++D000b), 1);
 #else
-    gen (JMP, (var0 = ++D000b), 1, 0);
+    gen (JMP, (l2 = ++D000b), 1, 0);
 #endif
-    L4414 (var0);
+    L4414 (l2);
 
     gen (LOAD, DREG, CONST, 0);
-    L4414 (var2);
+    L4414 (l1);
     cref->op = DREG;
 }
 
 void
 #ifdef COCO
-L12e8 (cref, fnc)
+doquery (cref, fnc)
     register expnode *cref;
     void (*fnc)();
 #else
-L12e8 (expnode *cref, void (*fnc)())
+doquery (expnode *cref, void (*fnc)())
 #endif
 {
-    int var4;
+    int l1;
     int var2;
-    int var0;
+    int l2;
 
-    L1f13 (cref->left, (var4 = ++D000b), (var0 = ++D000b), 1);
+    L1f13 (cref->left, (l1 = ++D000b), (l2 = ++D000b), 1);
     cref = cref->right;
-    L4414 (var4);
+    L4414 (l1);
     (*fnc) (cref->left);
 #ifdef COCO
-    gen (JMP, (var4 = ++D000b), 0);
+    gen (JMP, (l1 = ++D000b), 0);
 #else
-    gen (JMP, (var4 = ++D000b), 0, 0);
+    gen (JMP, (l1 = ++D000b), 0, 0);
 #endif
-    L4414 (var0);
+    L4414 (l2);
     (*fnc) (cref->right);
     L4414 (var2);
 }
 void
 #ifdef COCO
-L1364 (cref)
-    expnode *cref;
+docall (node)
+    expnode *node;
 #else
-L1364 (expnode *cref)
+docall (expnode *node)
 #endif
 {
-    expnode *var2;
+    expnode *rhs;
     int var0;
 
-    var0 = D000d;
-    var2 = cref;
+    var0 = sp;
+    rhs = node;
 
-    while (var2 = var2->right)
+    while (rhs = rhs->right)
     {
-        register expnode *regptr = var2->left;    /* L1379 */;
+        register expnode *lhs = rhs->left;    /* L1379 */;
 
-        if (regptr->type == LONG)     /* else L13a8 */
+        if (lhs->type == LONG)     /* else L13a8 */
         {
-            if (regptr->op == LCONST)
+            if (lhs->op == LCONST)
             {
-                L294b (regptr);  /* go to L1401 */
+                L294b (lhs);  /* go to L1401 */
                 continue;
             }
             else
             {
-                L2505 (regptr);
+                L2505 (lhs);
 #ifdef COCO
                 gen (LONGOP, STACK);
 #else
@@ -572,9 +572,9 @@ L1364 (expnode *cref)
         }
         else
         {       /* L13a8 */
-            if ((regptr->type == FLOAT) || (regptr->type == DOUBLE))
+            if ((lhs->type == FLOAT) || (lhs->type == DOUBLE))
             {
-                L29fc (regptr);
+                L29fc (lhs);
 #ifdef COCO
                 gen (DBLOP, STACK);
 #else
@@ -583,9 +583,9 @@ L1364 (expnode *cref)
             }
             else
             {
-                L0d04 (regptr);
+                tranexp (lhs);
 
-                switch (regptr->op)
+                switch (lhs->op)
                 {
                     case DREG:          /* L13f3 */
                     case XREG:
@@ -593,33 +593,33 @@ L1364 (expnode *cref)
                     case YREG:
                         break;
                     default:           /* L13d4 */
-                        L0c6d (regptr);
+                        doload (lhs);
                         break;
                 }
 
-                gen (PUSH, regptr->op NUL2);
+                gen (PUSH, lhs->op NUL2);
             }
 
         }
-    }       /* end while (var2 = cr->right)  ( L1401 ) */
+    }       /* end while (rhs = cr->right)  ( L1401 ) */
 
-    L0d04 (cref->left);
+    tranexp (node->left);
 #ifdef COCO
-    gen (CALL, NODE, cref->left);
+    gen (CALL, NODE, node->left);
 #else
-    gen (CALL, NODE, cref->left, 0);
+    gen (CALL, NODE, node->left, 0);
 #endif
-    D000d = prt_rsrvstk (var0);
-    cref->op = DREG;
+    sp = modstk (var0);
+    node->op = DREG;
 }
 
 
 int 
 #ifdef COCO
-L1440 (cref)
+isdleaf (cref)
     register expnode *cref;
 #else
-L1440 (expnode *cref)
+isdleaf (expnode *cref)
 #endif
 {
     expnode *var0;
@@ -638,7 +638,7 @@ L1440 (expnode *cref)
                 case UREG:
                     return 1;
                 default:           /* L145f */
-                    return L149e (var0);
+                    return regandcon (var0);
             }
     }
 
@@ -647,10 +647,10 @@ L1440 (expnode *cref)
 
 int 
 #ifdef COCO
-L149e (cref)
+regandcon (cref)
     register expnode *cref;
 #else
-L149e (expnode *cref)
+regandcon (expnode *cref)
 #endif
 {
     switch (cref->op)
@@ -662,7 +662,6 @@ L149e (expnode *cref)
             {
                 return 1;
             }
-
     }
 
     return 0;
@@ -670,10 +669,10 @@ L149e (expnode *cref)
 
 int 
 #ifdef COCO
-L14da (cref)
+isxleaf (cref)
     register expnode *cref;
 #else
-L14da (expnode *cref)
+isxleaf (expnode *cref)
 #endif
 {
     return (cref->sux < CHAR);
@@ -681,10 +680,10 @@ L14da (expnode *cref)
 
 int 
 #ifdef COCO
-L14f2 (cref)
+isaddress (cref)
     register expnode *cref;
 #else
-L14f2 (expnode *cref)
+isaddress (expnode *cref)
 #endif
 {
     switch (cref->op)
@@ -702,10 +701,10 @@ L14f2 (expnode *cref)
 
 void 
 #ifdef COCO
-L152d (cref)
+getinx (cref)
     register expnode *cref;
 #else
-L152d (expnode *cref)
+getinx (expnode *cref)
 #endif
 {
     if (cref->op & 0x8000)
@@ -720,149 +719,149 @@ L152d (expnode *cref)
 
 void 
 #ifdef COCO
-L1567 (cref)
-    expnode *cref;
+doass (node)
+    expnode *node;
 #else
-L1567 (expnode *cref)
+doass (expnode *node)
 #endif
 {
     int var2;
-    expnode *var0;
+    expnode *rhs;
 
-    register expnode *regptr;
+    register expnode *lhs;
 
-    var0 = cref->right;
-    regptr = cref->left;
+    rhs = node->right;
+    lhs = node->left;
 
-    if (is_regvar ((cref->left)->op))        /* else L15fd */
+    if (is_regvar ((node->left)->op))        /* else L15fd */
     {
-        if (L149e (var0))
+        if (regandcon (rhs))
         {
-            L1c1d (var0);
+            tranxexp (rhs);
         }
         else
         {
-            L0d04 (var0);
+            tranexp (rhs);
         }
 
-        switch (var0->op)
+        switch (rhs->op)
         {
             case AMPER:  /* L15ab */
-                gen (LOADIM, regptr->op, NODE, var0->left); /* jump to L1794 */
+                gen (LOADIM, lhs->op, NODE, rhs->left); /* jump to L1794 */
                 break;
             case CTOI:    /* L15bf */
-                gen (LOAD, DREG, NODE, var0);
+                gen (LOAD, DREG, NODE, rhs);
                 /* fall through to default */
             default:           /* L15d7 */
-                gen (LOAD, regptr->op, NODE, var0);
+                gen (LOAD, lhs->op, NODE, rhs);
                 break;
         }
 
-        cref->op = regptr->op;    /* L1794 */
-        cref->val.num = 0;
+        node->op = lhs->op;    /* L1794 */
+        node->val.num = 0;
         return;
     }
 
-    if ((L1440 (regptr)) && (regptr->type == CHAR)) /* L15fd */ /* else L1635 */
+    if ((isdleaf (lhs)) && (lhs->type != CHAR)) /* L15fd */ /* else L1635 */
     {
-        if ((L149e (var0)) || ( L14f2 (var0)))      /* else L1635 */
+        if ((regandcon (rhs)) || ( isaddress (rhs)))      /* else L1635 */
         {
-            L0d04 (regptr);
-            L1be4 (var0);
+            tranexp (lhs);
+            loadxexp (rhs);
             return;       /* L16ab */
         }
     }
 
     /* L1635 */
-    if (is_regvar (var0->op))   /* else L165c */
+    if (is_regvar (rhs->op))   /* else L165c */
     {
-        L0d04 (regptr);
+        tranexp (lhs);
 
-        if (regptr->type == CHAR)       /* else L16ad */
+        if (lhs->type == CHAR)       /* else L16ad */
         {
-            L0bc3 (var0);
+            lddexp (rhs);
             return;
         }
     }
 
-    if (L14da (regptr))
+    if (isxleaf (lhs))
     {
-        L0bc3 (var0);
+        lddexp (rhs);
         return;
     }
 
-    L0d04 (regptr);     /* L1675 */
+    tranexp (lhs);     /* L1675 */
 
-    if ( ! L1440 (var0))
+    if ( ! isdleaf (rhs))
     {
-        switch (regptr->op & 0x7fff)
+        switch (lhs->op & 0x7fff)
         {
             case UIND:       /* L16a4 */
             case YIND:
                 break;
             default:        /* LL168f */
-                L1904 (regptr);
+                stackx (lhs);
                 break;
         }
     }
 
-    gen (PUSH, var0->op, NODE, regptr);     /* L16a4 */
-    cref->op = var0->op;                /* L1796 */
-    cref->val.num = 0;
+    gen (STORE, rhs->op, NODE, lhs);     /* L16a4 */
+    node->op = rhs->op;                /* L1796 */
+    node->val.num = 0;
     return;         /* L1a96 */
 }
 
 void
 #ifdef COCO
-L16cb (cref, vartype)
-    expnode *cref;
-    int vartype;
+assop (node, op)
+    expnode *node;
+    int op;
 #else
-L16cb (expnode *cref, int vartype)
+assop (expnode *node, int op)
 #endif
 {
-    expnode *var2;
+    register expnode *lhs;
+    expnode *rhs;
     int var0;
-    register expnode *regptr;
 
-    var2 = cref->right;
-    regptr = cref->left;
-    L0d04 (regptr);
-    vartype -= 80;      /* This may go back to the \*= thing in p1_08.c */
+    rhs = node->right;
+    lhs = node->left;
+    tranexp (lhs);
+    op -= 80;      /* This may go back to the \*= thing in p1_08.c */
 
-    if (regptr->type == UNSIGN)   /* else L1719 */
+    if (lhs->type == UNSIGN)   /* else L1719 */
     {
-        switch (vartype)
+        switch (op)
         {
             case DIV:      /* L16f9 */
-                vartype = UDIV;
+                op = UDIV;
                 break;
             case SHR:     /* L16fe */
-                vartype = USHR;
+                op = USHR;
                 break;
             case MOD:    /* L1703 */
-                vartype = UMOD;
+                op = UMOD;
                 break;
         }
     }
 
-    if (var0 = (regptr->op & 0x7fff))       /* else L17ef */
+    if (var0 = (lhs->op & 0x7fff))       /* else L17ef */
     {
-        switch (vartype)
+        switch (op)
         {
             case PLUS:       /* L172f */
             case MINUS:        /* L172f */
-                if (var2->op == CONST)     /* else L1766 */
+                if (rhs->op == CONST)     /* else L1766 */
                 {
                     gen (LEA, var0, CONST,
-                            (vartype == PLUS) ? var2->val.num :
-                                                  -(var2->val.num));
+                            (op == PLUS) ? rhs->val.num :
+                                                  -(rhs->val.num));
                 }
                 else
                 {
-                    L0bc3 (var2);
+                    lddexp (rhs);
 
-                    if (vartype == MINUS)
+                    if (op == MINUS)
                     {
 #ifdef COCO
                         gen (NEG);
@@ -878,17 +877,17 @@ L16cb (expnode *cref, int vartype)
 #endif
                 }
 
-                cref->op = regptr->op;  /* L1794 */
-                cref->val.num = 0;
+                node->op = lhs->op;  /* L1794 */
+                node->val.num = 0;
                 return;
             case AND:        /* L17a3 */
             case OR:
             case XOR:
                 goto L17ed;
             default:           /* L17a7 */
-                gen (PUSH, regptr->op NUL2);
-                L0bc3 (var2);
-                gen (vartype NUL3);
+                gen (PUSH, lhs->op NUL2);
+                lddexp (rhs);
+                gen (op NUL3);
                 break;  /* go to L18e4 */
         }
     }
@@ -897,70 +896,70 @@ L16cb (expnode *cref, int vartype)
 L17ed:
         gen (LOAD, DREG, NODE NUL1);
         
-        if (cref->type == CHAR)
+        if (node->type == CHAR)
         {
             gen (CTOI NUL3);
         }
 
-        switch (vartype)
+        switch (op)
         {
             case AND:        /* L181c */
             case OR:
             case XOR:
             case PLUS:
             case MINUS:
-                if (L1440 (var2))   /* else L186d (default) */
+                if (isdleaf (rhs))   /* else L186d (default) */
                 {
-                    L0d04 (var2);
+                    tranexp (rhs);
 
-                    switch (vartype)
+                    switch (op)
                     {
                         case AND:        /* L1834 */
                         case OR:
                         case XOR:
-                            L152d (var2);
+                            getinx (rhs);
                             break;
                     }
 
-                    gen (vartype, DREG, NODE, var2);
+                    gen (op, DREG, NODE, rhs);
                     break;
                 }
                 /* Fall through to default */
             default:           /* L186d */
                 if ((var0 != YIND) && (var0 != UIND))
                 {
-                    L1904 (regptr);
+                    stackx (lhs);
                 }
 
                 gen (PUSH, DREG NUL2);
-                L0bc3 (var2);
+                lddexp (rhs);
 
-                if (vartype == MINUS)
+                if (op == MINUS)
                 {
-                    vartype = RSUB;
+                    op = RSUB;
                 }
 
-                gen (vartype, DREG, STACK NUL1);
+                gen (op, DREG, STACK NUL1);
                 break;
         }           /* end switch */
-    }           /* end else = (regptr->op & 0x7fff) == 0  */
+    }           /* end else = (lhs->op & 0x7fff) == 0  */
 
     /* L18e4 */
     gen (STORE, DREG, NODE NUL1);
-    cref->op = DREG;
+    node->op = DREG;
 }
 
 void
 #ifdef COCO
-L1904 (cref)
+stackx (cref)
     register expnode *cref;
 #else
-L1904 (expnode *cref)
+stackx (expnode *cref)
 #endif
 {
     if (cref->op != NAME)
     {
-        L152d (cref);
+        getinx (cref);
 
         if (cref->val.num)
         {
@@ -974,16 +973,16 @@ L1904 (expnode *cref)
 
 void
 #ifdef COCO
-L1953 (cref)
+dostar (cref)
     register expnode *cref;
 #else
-L1953 (expnode *cref)
+dostar (expnode *cref)
 #endif
 {
     expnode *var2;
     int var0;
 
-    L1c1d (var2 = cref->left);
+    tranxexp (var2 = cref->left);
 
     if ((var0 = var2->op) & 0x8000)     /* else L19d7 */
     {
@@ -996,7 +995,7 @@ L1953 (expnode *cref)
                 gen (LOAD, XREG, var0, var2->val.num);
                 break;
             default:           /* L199e */
-                L484b (var2, "indirection");
+                comperr (var2, "indirection");
                 break;
         }
 
@@ -1026,7 +1025,7 @@ L1953 (expnode *cref)
                 var0 = -32716;  /* -32716 */
                 cref->modifier = var2->modifier;
 L1a04:
-                cref->val.num = var2->val.num;
+                cref->val.sp = var2->val.sp;
                 break;
             case DREG:          /* L1a0c */
                 gen (LOAD, XREG, NODE, var2);
@@ -1039,7 +1038,7 @@ L1a04:
                 var0 = NAME;
                 break;
             default:           /* L1a3f */
-                L484b (cref, "indirection");
+                comperr (cref, "indirection");
                 var0 = XIND;
                 break;
         }
@@ -1051,103 +1050,102 @@ L1a04:
 
 void
 #ifdef COCO
-L1a9a (cref, val)
-    expnode *cref;
-    int val;
+dotoggle (node, dest)
+    expnode *node;
+    int dest;
 #else
-L1a9a (expnode *cref, int val)
+dotoggle (expnode *node, int dest)
 #endif
 {
-    /* 8 bytes static storage */
-    int var6;
+    int size;
     int var4;
-    int var2;
-    int var0;
-    register expnode *_leftref;
+    int op;
+    int reg;
+    register expnode *lhs;
 
-    _leftref = cref->left;
+    lhs = node->left;
 
-    L0d04 (_leftref);
-    var2 = cref->op;
+    tranexp (lhs);
+    op = node->op;
     
-    if (is_regvar (var0 = _leftref->op))        /* else L1afa */
+    if (is_regvar (reg = lhs->op))        /* else L1afa */
     {
-        switch (var2)
+        switch (op)
         {
             case INCAFT:
             case DECAFT:
-                if (val == DREG)     /* else L1ae6 */
+                if (dest == DREG)     /* else L1ae6 */
                 {
-                    gen (LOAD, val, NODE, _leftref);
+                    gen (LOAD, dest, NODE, lhs);
                     break;
                 }
             default:
-                val = var0;
+                dest = reg;
                 break;      /* go to L1b2b */
         }
     }
     else
     {
-        if ((val == XREG) && ((var0 & 0x7fff) == NAME))     /* L1afa */
+        if ((dest == XREG) && ((reg & 0x7fff) == NAME))     /* L1afa */
         {
-            val = DREG;
+            dest = DREG;
         }
         
-        gen (LOAD, val, NODE, _leftref);
-        var0 = val;
+        gen (LOAD, dest, NODE, lhs);
+        reg = dest;
     }
 
-    var6 = cref->val.num;        /* L1b2b */
+    size = node->val.num;        /* L1b2b */
 
-    switch (var2)
+    switch (op)
     {
         case DECBEF:        /* L1b35 */
         case DECAFT:
-            var6 = -var6;
+            size = -size;
 
         default:                /* L1b3d */
-            if (var0 == DREG)
+            if (reg == DREG)
             {
-                gen ( PLUS, var0, CONST, var6);
+                gen ( PLUS, reg, CONST, size);
                 break;
             }
-            gen (LEA, var0, CONST, var6);
+            gen (LEA, reg, CONST, size);
             break;
     }
 
-    gen (STORE, var0, NODE, _leftref);
+    gen (STORE, reg, NODE, lhs);
 
-    switch (var2)
+    switch (op)
     {
         default:                /* L1b97 */
-            cref->val.num = 0;
+            node->val.num = 0;
             break;
         case INCAFT:       /* L1b9b */
         case DECAFT:
-            if (var0 == DREG)
+            if (reg == DREG)
             {
-                gen (MINUS, DREG, CONST, var6);
+                gen (MINUS, DREG, CONST, size);
             }
             else
             {
-                cref->val.num = -var6;
+                node->val.num = -size;
             }
             break;
     }
 
-    cref->op = val;
+    node->op = dest;
     D0019 = 0;
 }
 
 void
 #ifdef COCO
-L1be4 (cref)
+loadxexp (cref)
     register expnode *cref;
 #else
-L1be4 (expnode *cref)
+loadxexp (expnode *cref)
 #endif
 {
-    L1c1d (cref);
+    tranxexp (cref);
 
     if ((cref->op != XREG) || (cref->val.num != 0))    /* else L1c16 */
     {
@@ -1159,27 +1157,26 @@ L1be4 (expnode *cref)
 
 void
 #ifdef COCO
-L1c1d (cref)
-    expnode *cref;
+tranxexp (node)
+    expnode *node;
 #else
-L1c1d (expnode *cref)
+tranxexp (expnode *node)
 #endif
 {
-    expnode *var6;
+    register expnode *lhs;
+    expnode *rhs;
     int var4;
-    int var2;
-    int var0;
+    int op;
+    int newop;
 
-    register expnode *_crleft;
-
-    _crleft = cref->left;
-    var6 = cref->right;
-    var0 = XREG;
+    lhs = node->left;
+    rhs = node->right;
+    newop = XREG;
     
-    switch (var2 = cref->op)
+    switch (op = node->op)
     {
         case STAR:   /* L1c41 */
-            L1953 (cref);
+            dostar (node);
             return;
         case NAME:     /* L1eaf */
         case YREG:
@@ -1191,49 +1188,49 @@ L1c1d (expnode *cref)
         case INCBEF:
         case DECBEF:
         case DECAFT:
-            L1a9a (cref, XREG);
+            dotoggle (node, XREG);
             return;
         case AMPER:  /* L1c5c */
-            gen (127, XREG, NODE, cref);
-            cref->val.num = 0;
+            gen (127, XREG, NODE, node);
+            node->val.num = 0;
             break;
         case CTOI:    /* L1c77 */
-            L0bc3 (cref);
+            lddexp (node);
             return;
         case MINUS:        /* L1c81 */
-            if ((_crleft->op != AMPER) && (var6->sux))
+            if ((lhs->op != AMPER) && (rhs->sux))
             {                                   /* go to L1d30 */
                 goto L1e42;
             }
                 /* Is this correct????  */
         case PLUS:       /* L1c92 */
-            if ((is_regvar (_crleft->op)) || (_crleft->op == AMPER))
+            if ((is_regvar (lhs->op)) || (lhs->op == AMPER))
             {       /* else L1cf9 */
-                if (var6->op == CONST)   /* L1ca5 */ /* else L1cc1 */
+                if (rhs->op == CONST)   /* L1ca5 */ /* else L1cc1 */
                 {
-                    L1c1d (_crleft);
-                    var0 = _crleft->op;
-                    var4 = var6->val.num;
+                    tranxexp (lhs);
+                    newop = lhs->op;
+                    var4 = rhs->val.num;
                     
                     /* jump to L1e26 */
 
-                    /*if (var2 == PLUS)
+                    /*if (op == PLUS)
                     {
-                        _crleft->val.num += var4;
+                        lhs->val.num += var4;
                     }
                     else
                     {
-                        _crleft->val.num -= var4;
+                        lhs->val.num -= var4;
                     }
 
                     break;*/
                 }
                 else
                 {
-                    L0bc3 (var6);       /* L1cc1 */
-                    L1c1d (_crleft);
+                    lddexp (rhs);       /* L1cc1 */
+                    tranxexp (lhs);
 
-                    if (var2 == MINUS)      /* else L1ce3 */
+                    if (op == MINUS)      /* else L1ce3 */
                     {
 #ifdef COCO
                         gen (NEG);
@@ -1243,41 +1240,41 @@ L1c1d (expnode *cref)
                     }
 
 #ifdef COCO
-                    gen (LEAX, DREG, _crleft->op);      /* L1ce3 */
+                    gen (LEAX, DREG, lhs->op);      /* L1ce3 */
 #else
-                    gen (LEAX, DREG, _crleft->op, 0);
+                    gen (LEAX, DREG, lhs->op, 0);
 #endif
                     var4 = 0;
                 }
             }
             else
             {                    /* L1cf9 */
-                if ((var2 == PLUS) && (_crleft->sux < var6->sux))
+                if ((op == PLUS) && (lhs->sux < rhs->sux))
                 {
-                    expnode *_tmpref = _crleft;
+                    expnode *_tmpref = lhs;
 
-                    _crleft = var6;
-                    var6 = _tmpref;
+                    lhs = rhs;
+                    rhs = _tmpref;
                 }
 
-                if ( ! L1440 (var6))        /* L1d18 */     /* else L1d35 */
+                if ( ! isdleaf (rhs))        /* L1d18 */     /* else L1d35 */
                 {
-                    if ( ! is_regvar (var6->op))
+                    if ( ! is_regvar (rhs->op))
                     {
                         goto L1e42;
                     }
                 }
 
-                L1c1d (_crleft);        /* L1d35 */
+                tranxexp (lhs);        /* L1d35 */
 
-                switch (_crleft->op & 0x7fff)
+                switch (lhs->op & 0x7fff)
                 {
                     case DREG:          /* L1d45 */
-                        if ((var2 == PLUS) &&     /* else L1d69 */
-                                (var6->op == CONST))
+                        if ((op == PLUS) &&     /* else L1d69 */
+                                (rhs->op == CONST))
                         {
-                            L0bf7 (var6);
-                            _crleft->val.num = 0;
+                            ldxexp (rhs);
+                            lhs->val.num = 0;
                             goto L1e0a;
                         }
 
@@ -1287,29 +1284,29 @@ L1c1d (expnode *cref)
                     case XIND:          /* L1d69 */
                     case YIND:
                     case UIND:
-                        gen (LOAD, XREG, NODE, _crleft);
-                        _crleft->val.num = 0;
+                        gen (LOAD, XREG, NODE, lhs);
+                        lhs->val.num = 0;
                         break;
                     case XREG:          /* L1dd5 */
                         break;
                     case YREG:    /* L1d85 */
                     case UREG:
-                        var0 = _crleft->op;
+                        newop = lhs->op;
                         break;
                     default:           /* L1d8b */
-                        L484b ( _crleft, "x translate");
+                        comperr ( lhs, "x translate");
                         break;
                 }
 
-                if (var6->op == CONST)     /* L1dd5 */
+                if (rhs->op == CONST)     /* L1dd5 */
                 {
-                    var4 = var6->val.num;
+                    var4 = rhs->val.num;
                 }
                 else
                 {
-                    L0bc3 (var6);
+                    lddexp (rhs);
                     
-                    if (var2 == MINUS)  /* else L1e0c */
+                    if (op == MINUS)  /* else L1e0c */
                     {
 #ifdef COCO
                         gen (NEG, 0, 0);
@@ -1320,34 +1317,34 @@ L1c1d (expnode *cref)
 
 L1e0a:
 #ifdef COCO
-                    gen (LEAX, DREG, var0);
+                    gen (LEAX, DREG, newop);
 #else
-                    gen (LEAX, DREG, var0, 0);
+                    gen (LEAX, DREG, newop, 0);
 #endif
-                    var0 = XREG;
+                    newop = XREG;
                     var4 = 0;
                 }
             }
 
                 /* L1e26 */
-            /*if (var2 == PLUS)
+            /*if (op == PLUS)
             {
-                cref->val.num = _crleft->val.num + var4;
+                node->val.num = lhs->val.num + var4;
             }
             else
             {
-                cref->val.num = _crleft->val.num - var4;
+                node->val.num = lhs->val.num - var4;
             }*/
-            cref->val.num = _crleft->val.num + ((var2 == PLUS) ? var4 : -var4);
+            node->val.num = lhs->val.num + ((op == PLUS) ? var4 : -var4);
             
             break;
         default:           /* L1e44 */
 L1e42:
-            L0d04 (cref);
+            tranexp (node);
             return;
     }
 
-    cref->op = var0;    /* L1ea9 */
+    node->op = newop;    /* L1ea9 */
 }
 
 int

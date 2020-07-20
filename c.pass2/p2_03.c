@@ -15,10 +15,10 @@ L1f13 (cref, parm2, parm3, parm4)
 L1f13 (expnode *cref, int parm2, int parm3, int parm4)
 #endif
 {
-    int var2;
+    int op;
     int var0;
 
-    switch (var2 =  cref->op)
+    switch (op =  cref->op)
     {           /* break = L20e9 */
         case DBLAND:     /* L1f28 */
             L1f13 (cref->left, (var0 = ++D000b), parm3, 1);
@@ -37,12 +37,12 @@ L1f66:
         case LEQ:
         case LT:
         case GEQ:      /* L1f87 */
-        case 95:
+        case GT:
         case ULEQ:
-        case 97:
-        case 98:
-        case 99:
-            L20ed (var2, cref, parm2, parm3, parm4);
+        case ULT:
+        case UGEQ:
+        case UGT:
+            L20ed (op, cref, parm2, parm3, parm4);
             break;
         case CONST:
         case FCONST:     /* L1fa1 */
@@ -68,7 +68,7 @@ L1f66:
             }
             break;
         case COMMA:      /* L1fcb */
-            L0d04 (cref->left);
+            tranexp (cref->left);
             L1f13 (cref->right, parm2, parm3, parm4);
             break;
         default:           /* L1fec */
@@ -180,20 +180,20 @@ L20ed (int parm1, expnode *cref, int parm3, int parm4, int parm5)
 
     if (is_regvar (var4))       /* else L221f */
     {
-        L0d04 (_crRight);
+        tranexp (_crRight);
 
         switch (_crRight->op)
         {
             case AMPER:           /* L21b8 */
-                L0c2d (_crRight);
+                loadexp (_crRight);
                 goto L21e0;
             case CTOI:    /* L21c3 */
                 gen (LOAD, DREG, NODE, _crRight);
                 _crRight->op = DREG;
                 /* fall through to next case */
-            case XREG:      /* L21e2 */
-            case YREG:      /* L21e2 */
-            case UREG:      /* L21e2 */
+            case XREG:
+            case YREG:
+            case UREG:
             case DREG:      /* L21e2 */
 L21e0:
 #ifdef COCO
@@ -221,12 +221,12 @@ L21e0:
         }
         else
         {
-            L0c2d (var0);       /* L223c */
+            loadexp (var0);       /* L223c */
             var4 = var0->op;
             
-            if ((L1440 (_crRight)) || ((var4 == DREG) && L22ca (_crRight)))
+            if ((isdleaf (_crRight)) || ((var4 == DREG) && L22ca (_crRight)))
             {
-                L0d04 (_crRight);   /* go to L229b */
+                tranexp (_crRight);   /* go to L229b */
             }
             else
             {
@@ -236,7 +236,7 @@ L21e0:
                 gen (PUSH, var4, 0, 0);
 #endif
                 var0->op = STACK;
-                L0c2d (_crRight);
+                loadexp (_crRight);
                 var4 = _crRight->op;
                 _crRight = var0;
                 parm1 = L249e (parm1);
@@ -267,7 +267,7 @@ L22ca (expnode *cref)
         case CONST:
             return 1;
         case STAR:    /* L22dd */
-            return L14da (cref);
+            return isxleaf (cref);
         default:
             return 0;
     }
@@ -344,7 +344,7 @@ L2323 (expnode *cref)
     }
 
     D0019 = 0;
-    L0d04 (cref);
+    tranexp (cref);
 
     switch (cref->op)
     {
@@ -403,7 +403,7 @@ L249e (int parm1)
         case LEQ:      /* L24ae */
         case LT:         /* L24ae */
         case ULEQ:           /* L24ae */
-        case 97:           /* L24ae */
+        case ULT:           /* L24ae */
             return (parm1 + 2);
         default:           /* L24b5 */
             return (parm1 - 2);
@@ -419,15 +419,6 @@ L24e6 (expnode *cref)
 #endif
 {
     return ((cref->op == CONST) && ( ! cref->val.num));
-
-    /*if ((cref->op == CONST) && ( ! cref->val.num))
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }*/
 }
 
 void
@@ -463,8 +454,8 @@ L2520 (expnode *cref)
         case NAME:     /* L28f7 */
             break;
         case STAR:   /* L2535 */
-            L1953 (cref);
-            L152d (cref);
+            dostar (cref);
+            getinx (cref);
 
             switch (cref->op)
             {
@@ -490,7 +481,7 @@ L2520 (expnode *cref)
             break;
 
         case UTOL:      /* L2577 */
-            L0bc3 (cref->left);
+            lddexp (cref->left);
             gen (LONGOP, UTOL NUL2);
             goto L25bf;
         case DTOL:    /* L2586 */
@@ -502,7 +493,7 @@ L2520 (expnode *cref)
 #endif
             goto L25bf;
         case ITOL:      /* L25a5 */
-            L0bc3 (cref->left);
+            lddexp (cref->left);
             gen (LONGOP, ITOL NUL2);
 L25bf:
             cref->op = 128;
@@ -516,7 +507,7 @@ L25bf:
             L3203 (cref->val.num, 4);
             goto L27d4;
         case QUERY:   /* L25ea */
-            L12e8 (cref, L2505);
+            doquery (cref, L2505);
             goto L27d4;
         case INCBEF:   /* L25f7 */
         case DECBEF:
@@ -554,7 +545,7 @@ L25bf:
             goto L25bf;
 
         case CALL:     /* L2674 */
-            L1364 (cref);
+            docall (cref);
             goto L25bf;
         case TIMES:       /* L267e */
             if (((cref->left)->op) == LCONST)
@@ -571,7 +562,7 @@ L25bf:
                 var4 = ((expnode *)(cref->right)->val.num);
 
                     /* L26f9 */
-                if ( ! (var4->type) && (var0 = L121f (var4->size)))
+                if ( ! (var4->type) && (var0 = isashift (var4->size)))
                 {
                     L3203 (var4, STRUCT);
                     var4 = cref->right;
@@ -629,7 +620,7 @@ L2733:
 #else
             gen (PUSH, DREG, 0, 0);
 #endif
-            L0bc3 ( cref->right);
+            lddexp ( cref->right);
 #ifdef COCO
             gen (LONGOP, var2);
 #else
@@ -675,7 +666,7 @@ L27d4:
                 goto L278e;
             }
 
-            L484b (cref, "longs");
+            comperr (cref, "longs");
             break;
     }
 }

@@ -1,5 +1,6 @@
 InPath equ $03 D
 OutPath equ $05 D
+errcount equ $09 D
 NoStkChk equ $11 D
 DoProfile equ $13 D
 LJust equ $1d D
@@ -66,6 +67,27 @@ main equ $017d L
 openoutpth equ $09db L
 err_exit equ $0adf L
 psh_stk equ $0ac2 L
+lddexp equ $0bc3 L
+ldxexp equ $0bf7 L
+loadexp equ $0c2d L
+doload equ $0c6d L
+tranexp equ $0d04 L
+tranbinop equ $0efd L
+dobool equ $124c L
+doquery equ $12e8 L
+docall equ $1364 L
+isdleaf equ $1440 L
+regandcon equ $149e L
+isxleaf equ $14da L
+isaddress equ $14f2 L
+getinx equ $152d L
+doass equ $1567 L
+assop equ $16cb L
+stackx equ $1904 L
+dostar equ $1953 L
+dotoggle equ $1a9a L
+loadxexm equ $1be4 L
+tranxexp equ $1c1d L
 is_regvar equ $1eb3 L
 
 * printf.c
@@ -86,20 +108,23 @@ add512mem equ $31bb L
 get_regname equ $3987 L
 transfer equ $39be L
 br_rel_op equ $4332 L
-prt_bgnfld equ $43b8 L
+ot equ $43b8 L
+newln equ $43dc L
 prnt_chr equ $43e7 L
 prnt_strng equ $43f6 L
-prnt_integer equ $4407 L
+od equ $4407 L
 prt_loclbl equ $441f L
 prt_lblnam equ $4432 L
-prt_rsrvstk equ $443f L
+modstk equ $443f L
 prt_label equ $4471 L
 lea_reg equ $448e L
-lea_llblpcr equ $44a5 L
+outstr equ $44a5 L
 
 * p2_07.c
 outofmemory equ $4834 L
+comperr equ $484b L
 lng2_flacc equ $48e8 L
+showerr equ $4938 L
 
 ncpystr equ $4b10 L
 prt_fdb equ $4b88 L

@@ -39,8 +39,8 @@ main (int argc, char **argv)
         {
             while ((*(++argp)) != '\0')     /* L0230 */
             {
-                switch (*argp)
-                {/* L01a0 */
+                switch (*argp)      /* L01a0 */
+                {
                     case 's':           /* L01a8 */
                         NoStkChk = 1;
                         break;
@@ -69,7 +69,7 @@ main (int argc, char **argv)
         }           /* end "if (*argp == '-') */
         else
         {
-            if (InPath)      /* L023a */ /* else L025e */
+            if (InPath)      /* L023a */
             {
                 if (D0280)
                 {
@@ -135,11 +135,11 @@ L028b:
             case 'T':          /* see prt_4c68 in p1_07.c */    /* L0350 */
                 var34 = getword (InPath);
                 D000b = getword (InPath);   /* LblNum */
-                D000d = getword (InPath);
+                sp = getword (InPath);
 
-                if (D0017 > D000d)
+                if (D0017 > sp)
                 {
-                    D0017 = D000d;
+                    D0017 = sp;
                 }
 
                 switch (var34)
@@ -168,15 +168,15 @@ L028b:
                         L0a16 (D0282, var24);
                         break;
                     case 4:            /* L040f */
-                        D0282 = L0d04 (D0282);
+                        D0282 = tranexp (D0282);
                         break;
                     case 1:            /* L0421 */
-                        L0bf7 (D0282);
+                        ldxexp (D0282);
                         break;
                     case 5:            /* L042f */
                         prt_fdb ();
                         L40d0 (119, D0282, 0);
-                        L43dc ();
+                        newln ();
                         D0023 = 0;
                         break;
                     default:
@@ -191,10 +191,10 @@ L028b:
             case 'l':          /* L0499 */
                 L4414 (getword (InPath));
                 break;
-            case 'v':          /* L04a8 */
+            case 'v':
             case 'd':          /* L04a8 */
                 prtvsctbgn (_curntchr == 'd');
-                exit (0);
+                /*exit (0);*/
                 break;
             case 'e':          /* L04bf */
                 prtendsect ();
@@ -580,7 +580,7 @@ L0a39:
             
             break;
         default:           /* L0aa0 */
-            L0bc3 (cref);
+            lddexp (cref);
     }
 }
 
