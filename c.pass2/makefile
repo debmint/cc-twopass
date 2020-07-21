@@ -8,13 +8,15 @@ $(RDIR)/%.r: %.c
 CFLAGS = -dCOCO
 PROG = c.pass2
 
-OBJS = p2main.r tranexp.r bool.r floats.r \
+OBJS = p2main.r tranexp.r bool.r longs.r floats.r \
 	   printf.r codgen.r misc.r local.r
 
-RELS = $(RDIR)/p2main.r $(RDIR)/tranexp.r $(RDIR)/bool.r $(RDIR)/floats.r \
-	   $(RDIR)/printf.r $(RDIR)/codgen.r $(RDIR)/misc.r $(RDIR)/local.r
+RELS = $(RDIR)/p2main.r $(RDIR)/tranexp.r $(RDIR)/bool.r \
+	   $(RDIR)/longs.r $(RDIR)/floats.r $(RDIR)/printf.r \
+	   $(RDIR)/codgen.r $(RDIR)/misc.r $(RDIR)/local.r
 
-STKS = $(RDIR)/p2main.r $(RDIR)/tranexp.r $(RDIR)/bool.r $(RDIR)/floats.r
+STKS = $(RDIR)/p2main.r $(RDIR)/tranexp.r $(RDIR)/bool.r \
+	   $(RDIR)/longs.r $(RDIR)/floats.r
 	   
 NOSTK = $(RDIR)/printf.r $(RDIR)/codgen.r $(RDIR)/misc.r $(RDIR)/local.r
 

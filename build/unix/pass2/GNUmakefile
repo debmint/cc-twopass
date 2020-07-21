@@ -3,7 +3,8 @@ vpath %.h = ../../../c.pass2
 
 CFLAGS = -g -m32 -I../../..
 PROG =   c.pass2
-OBJS =   p2main.o tranexp.o bool.o floats.o printf.o codgen.o misc.o local.o
+OBJS =   p2main.o tranexp.o bool.o longs.o floats.o \
+		 printf.o codgen.o misc.o local.o
 RM =     rm -f
 LFLAGS = -g -m32
 
