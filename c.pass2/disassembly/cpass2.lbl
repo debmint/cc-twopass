@@ -1,13 +1,20 @@
 InPath equ $03 D
 OutPath equ $05 D
 errcount equ $09 D
+sp equ $0d D
+callflag equ $0f D
 NoStkChk equ $11 D
 DoProfile equ $13 D
+maxpush equ $17 D
+shiftflag equ $19 D
 LJust equ $1d D
 FillChar equ $1f D
 DestFlg equ $21 D
 dpsiz equ $27 D
 TenMults equ $43 D
+lbsr equ $51 D
+lbra equ $53 D
+unkopr equ $57 D
 atoftbl equ $59 D
 stdin equ $c1 D
 stdout equ $ce D
@@ -67,6 +74,9 @@ main equ $017d L
 openoutpth equ $09db L
 err_exit equ $0adf L
 psh_stk equ $0ac2 L
+
+* tranexp - part 2
+
 lddexp equ $0bc3 L
 ldxexp equ $0bf7 L
 loadexp equ $0c2d L
@@ -90,6 +100,21 @@ loadxexm equ $1be4 L
 tranxexp equ $1c1d L
 is_regvar equ $1eb3 L
 
+* bool.c - part 3
+
+tranbool equ $1f13 L
+isaleaf equ $22ca L
+checkop equ $2323 L
+invrel equ $2466 L
+
+revrel equ $249e L
+zeroconst equ $24e6 L
+lload equ $2505 L
+tranlexp equ $2520 L
+getadd equ $28fb L
+dload equ $29fc L
+trandexp equ $2a17 L
+
 * printf.c
 
 printf equ $2d3f L
@@ -100,19 +125,29 @@ _hex2str equ $2fc9 L
 outputfl equ $3028 L
 sendchar equ $30e3 L
 
-* p2_06.c
+* codgen.c - part 6
 
 getmem equ $310f L
 gen equ $3292 L
 add512mem equ $31bb L
 get_regname equ $3987 L
 transfer equ $39be L
+dolongs equ $39d9 L
+dofloats equ $3bc2 L
+trouble equ $3ea4 L
+getcon equ $3d90 L
+defcon equ $3dd0 L
+mwsyscall equ $3e51 L
+lcall equ $3e6e L
+fcall equ $3e8d L
 br_rel_op equ $4332 L
 ot equ $43b8 L
+ol equ $43d1 L
 newln equ $43dc L
 prnt_chr equ $43e7 L
 prnt_strng equ $43f6 L
 od equ $4407 L
+label equ $4414 L
 prt_loclbl equ $441f L
 prt_lblnam equ $4432 L
 modstk equ $443f L
@@ -121,17 +156,22 @@ lea_reg equ $448e L
 outstr equ $44a5 L
 
 * p2_07.c
+error equ $4823 L
 outofmemory equ $4834 L
 comperr equ $484b L
 lng2_flacc equ $48e8 L
 showerr equ $4938 L
-
+reltree equ $4a69 L
+release equ $4a8a L
+nodecopy equ $4acd L
+isbin equ $4af7 L
 ncpystr equ $4b10 L
 prt_fdb equ $4b88 L
 prt_funcbegin equ $4b96 L
 prtstkreq equ $4c1a L
 prtvsctbgn equ $4c3e L
 prtendsect equ $4c54 L
+oc equ $4c92 L
 
 * library functions
 

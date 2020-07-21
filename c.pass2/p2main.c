@@ -7,8 +7,13 @@
 #include "pass2.h"
 
 extern direct int D0023;
+
+static expnode *L0787 ();
+
 #ifdef COCO
-expnode *L0787 ();
+static void psh_stk ();
+#else
+static void psh_stk (int);
 #endif
 
 int
@@ -137,9 +142,9 @@ L028b:
                 D000b = getword (InPath);   /* LblNum */
                 sp = getword (InPath);
 
-                if (D0017 > sp)
+                if (maxpush > sp)
                 {
-                    D0017 = sp;
+                    maxpush = sp;
                 }
 
                 switch (var34)
@@ -162,7 +167,7 @@ L028b:
                 switch (var34)
                 {       /* L048d = break */
                     case 2:            /* L03df */
-                        L1f13 (D0282, var30, var32, var28);
+                        tranbool (D0282, var30, var32, var28);
                         break;
                     case 18:           /* L03fc */
                         L0a16 (D0282, var24);
@@ -175,7 +180,7 @@ L028b:
                         break;
                     case 5:            /* L042f */
                         prt_fdb ();
-                        L40d0 (119, D0282, 0);
+                        deref (119, D0282, 0);
                         newln ();
                         D0023 = 0;
                         break;
@@ -185,11 +190,11 @@ L028b:
                         break;
                 }
 
-                L4a69 (D0282);      /* L048d */
+                reltree (D0282);      /* L048d */
                 break;
 
             case 'l':          /* L0499 */
-                L4414 (getword (InPath));
+                label (getword (InPath));
                 break;
             case 'v':
             case 'd':          /* L04a8 */
@@ -212,35 +217,35 @@ L028b:
                         _curntchr = getc (InPath);
                     }
 
-                    L4c92 (_curntchr);
+                    oc (_curntchr);
                 }
 
-                L4c92 (0);
+                oc (0);
                 break;
             case 'M':          /* L0504 */
                 psh_stk (getword (InPath));
                 break;
             case 'r':          /* L0515 */
-                gen (18, 0, 0 NUL1);
+                gen (RETURN, 0, 0 NUL1);
                 break;
             case 'J':          /* L0523 */
                 
-                gen (125, getword (InPath), (var24 = getword (InPath)) NUL1);
+                gen (JMPEQ, getword (InPath), (var24 = getword (InPath)) NUL1);
                 break;
             case 'G':          /* L053f */
-                gen (29, getword (InPath), 0 NUL1);
+                gen (GOTO, getword (InPath), 0 NUL1);
                 break;
             case 'j':          /* L0551 */
-                gen (124, getword (InPath), 0 NUL1);
+                gen (JMP, getword (InPath), 0 NUL1);
                 break;
             case 'D':          /* L0563 */
-                gen (9, getword (InPath), (var24 = getword (InPath)) NUL1);
+                gen (LABEL, getword (InPath), (var24 = getword (InPath)) NUL1);
                 break;
             case 'Y':          /* L0587 */
-                gen (118, getword (InPath) NUL2);
+                gen (YREG, getword (InPath) NUL2);
                 break;
             case 'U':          /* L0595 */
-                gen ( 111, getword (InPath) NUL2);
+                gen ( UREG, getword (InPath) NUL2);
                 break;
             case 'S':          /* L05ab */
                 var24 = getc (InPath);
@@ -280,14 +285,14 @@ L028b:
 
                     if (_fval == DOUBLE)
                     {
-                        L3dd0 (&_fdbl, DOUBLESIZE/2);
+                        defcon (&_fdbl, DOUBLESIZE/2);
                     }
                     else
                     {
                         float _myflot;
 
                         _myflot = _fdbl;
-                        L3dd0 (&_myflot, FLOATSIZE/2);
+                        defcon (&_myflot, FLOATSIZE/2);
                     }
 
                     break;
@@ -329,15 +334,9 @@ L028b:
     }       /* end while <read input> */
 }           /* end main () */
 
-expnode *
-#ifdef COCO
+static expnode *
 L0787 ()
-#else
-L0787 (void)
-#endif
 {
-    /* 10 bytes static vars */
-
     struct nwref *_nwrf;
     int _cmdty;
     char *_lblnamptr;
@@ -377,10 +376,10 @@ L0787 (void)
 
             switch (_nwrf->ftyp)
             {
-                case EXTERN:    /* L0838 */
+                case EXTERN:
                 case EXTDEF:     /* L0838 */
-                case DIRECT:    /* L0838 */
-                case EXTERND:    /* L0838 */
+                case DIRECT:
+                case EXTERND:
                     _lblnamptr = _nwrf->rfdat.st;
                     
                     while (*(_lblnamptr++) = getc (InPath));
@@ -543,11 +542,11 @@ L0a16 (expnode *cref, int parm2)
     switch (parm2)
     {
         case LONG:      /* L0a25 */
-            L2505 (cref);
+            lload (cref);
             goto L0a39;
         case FLOAT:     /* L0a30 */
         case DOUBLE:    /* L0a30 */
-            L29fc (cref);
+            dload (cref);
 L0a39:
             if (cref->op != FREG)
             {
@@ -584,23 +583,19 @@ L0a39:
     }
 }
 
-void
+static void
 #ifdef COCO
-psh_stk (parm)
+psh_stk (byts)
 #else
-psh_stk ( char *parm)
+psh_stk (int byts)
 #endif
 {
-    fprintf (OutPath, " leas %d,s\n", parm);
+    fprintf (OutPath, " leas %d,s\n", byts);
 }
 
 
 void
-#ifdef COCO
 err_exit ()
-#else
-err_exit (void)
-#endif
 {
     if (InFileName)
     {

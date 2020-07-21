@@ -52,12 +52,12 @@ GLOBAL direct int D0007;
 GLOBAL direct int errcount;
 GLOBAL direct int D000b;
 GLOBAL direct int sp;
-GLOBAL direct int D000f;
+GLOBAL direct int callflag;
 GLOBAL direct int NoStkChk,
                   DoProfile;
 GLOBAL direct int D0015;
-GLOBAL direct int D0017;
-GLOBAL direct int D0019;
+GLOBAL direct int maxpush;
+GLOBAL direct int shiftflag;
 /*GLOBAL direct int D001b;*/ /* provided by "printf.c", I think */
 
 GLOBAL int dpsz[]
@@ -94,12 +94,12 @@ GLOBAL int spind
 = ",s"
 #endif
 ;
-GLOBAL int D0051
+GLOBAL int lbsr
 #ifdef MAIN
 = "lbsr "
 #endif
 ;
-GLOBAL int D0053
+GLOBAL int lbra
 #ifdef MAIN
 = "lbra "
 #endif
@@ -109,7 +109,7 @@ GLOBAL int D0055
 = "clra"
 #endif
 ;
-GLOBAL int D0057
+GLOBAL int unkopr
 #ifdef MAIN
 = "unknown operator : "
 #endif
@@ -127,5 +127,5 @@ GLOBAL struct lng_something *D029a,
 GLOBAL int D02da;
 GLOBAL int D02dc;
 GLOBAL FILE *D02de;
-GLOBAL int D02e0;
+GLOBAL int scount;
 

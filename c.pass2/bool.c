@@ -8,29 +8,29 @@
 
 void
 #ifdef COCO
-L1f13 (cref, parm2, parm3, parm4)
-    register expnode *cref;
-    int parm2, parm3, parm4;
+tranbool (node, tlab, flab, n)
+    register expnode *node;
+    int tlab, flab, n;
 #else
-L1f13 (expnode *cref, int parm2, int parm3, int parm4)
+tranbool (expnode *node, int tlab, int flab, int n)
 #endif
 {
     int op;
-    int var0;
+    int second;
 
-    switch (op =  cref->op)
+    switch (op =  node->op)
     {           /* break = L20e9 */
         case DBLAND:     /* L1f28 */
-            L1f13 (cref->left, (var0 = ++D000b), parm3, 1);
+            tranbool (node->left, (second = ++D000b), flab, 1);
             goto L1f66;
         case DBLOR:       /* L1f48 */
-            L1f13 (cref->left, parm2, (var0 = ++D000b), 0);
+            tranbool (node->left, tlab, (second = ++D000b), 0);
 L1f66:
-            L4414 (var0);
-            L1f13 (cref->right, parm2, parm3, parm4);
+            label (second);
+            tranbool (node->right, tlab, flab, n);
             break;                      /* go to L20e9 */
         case NOT:     /* L1f72 */
-            L1f13 (cref->left, parm3, parm2, (1 - parm4));
+            tranbool (node->left, flab, tlab, (1 - n));
             break;
         case EQ:
         case NEQ:
@@ -42,39 +42,39 @@ L1f66:
         case ULT:
         case UGEQ:
         case UGT:
-            L20ed (op, cref, parm2, parm3, parm4);
+            L20ed (op, node, tlab, flab, n);
             break;
         case CONST:
         case FCONST:     /* L1fa1 */
         case LCONST:
-            if (cref->val.num && ! parm4)
+            if (node->val.num && !n)
             {
 #ifdef COCO
-                gen (JMP, parm2, 0);
+                gen (JMP, tlab, 0);
 #else
-                gen (JMP, parm2, 0, 0);
+                gen (JMP, tlab, 0, 0);
 #endif
             }
             else
             {
-                if (parm4 && ( ! cref->val.num))
+                if (n && ( ! node->val.num))
                 {
 #ifdef COCO
-                    gen (JMP, parm3, 0);
+                    gen (JMP, flab, 0);
 #else
-                    gen (JMP, parm3, 0, 0);
+                    gen (JMP, flab, 0, 0);
 #endif
                 }
             }
             break;
         case COMMA:      /* L1fcb */
-            tranexp (cref->left);
-            L1f13 (cref->right, parm2, parm3, parm4);
+            tranexp (node->left);
+            tranbool (node->right, tlab, flab, n);
             break;
         default:           /* L1fec */
-            if (cref->type == LONG)
+            if (node->type == LONG)
             {
-                L2505 (cref);
+                lload (node);
 #ifdef COCO
                 gen (LONGOP, TEST);
 #else
@@ -84,42 +84,42 @@ L1f66:
             }
             else
             {
-                if ((cref->type == FLOAT) || (cref->type == DOUBLE))
+                if ((node->type == FLOAT) || (node->type == DOUBLE))
                 {               /* else L2042 */
-                    if (cref->op == FTOD)
+                    if (node->op == FTOD)
                     {
-                        cref = cref->left;
+                        node = node->left;
                     }
 
-                    L29fc (cref);           /* L2026 */
+                    dload (node);           /* L2026 */
 #ifdef COCO
-                    gen (DBLOP, TEST, cref->type);
+                    gen (DBLOP, TEST, node->type);
 #else
-                    gen (DBLOP, TEST, cref->type, 0);
+                    gen (DBLOP, TEST, node->type, 0);
 #endif
                 }
                 else
                 {
-                    L2323 (cref);
+                    checkop (node);
                 }
             }
 #ifdef COCO
 L204d:
 #endif
-            if (parm4)
+            if (n)
             {
 #ifdef COCO
-                gen (CNDJMP, EQ, parm3);
+                gen (CNDJMP, EQ, flab);
 #else
-                gen (CNDJMP, EQ, parm3, 0);
+                gen (CNDJMP, EQ, flab, 0);
 #endif
             }
             else
             {
 #ifdef COCO
-                gen (CNDJMP, NEQ, parm2);
+                gen (CNDJMP, NEQ, tlab);
 #else
-                gen (CNDJMP, NEQ, parm2, 0);
+                gen (CNDJMP, NEQ, tlab, 0);
 #endif
             }
 
@@ -129,35 +129,35 @@ L204d:
 
 void
 #ifdef COCO
-L20ed (parm1, cref, parm3, parm4, parm5)
-    int parm1;
-    expnode *cref;
-    int parm3, parm4, parm5;
+L20ed (op, node, tlab, flab, nj)
+    int op;
+    expnode *node;
+    int tlab, flab, nj;
 #else
-L20ed (int parm1, expnode *cref, int parm3, int parm4, int parm5)
+L20ed (int op, expnode *node, int tlab, int flab, int nj)
         /* +10            +12        +14        +16        +18  */
 #endif
 {
-    expnode *var4;
-    int var2;
-    expnode *var0 = cref->left;
+    expnode *t;
+    int destin;
+    expnode *lhs = node->left;
 
-    register expnode *_crRight = cref->right;
+    register expnode *rhs = node->right;
 
-    var2 = (parm5 ? parm4 : parm3);
+    destin = (nj ? flab : tlab);
 
-    parm1 = (parm5 ? L2466 (parm1) : parm1);
+    op = (nj ? invrel (op) : op);
 
-    if (var0->type == LONG)
+    if (lhs->type == LONG)
     {
-        L2520 (cref);       /* go to L214b */
+        tranlexp (node);       /* go to L214b */
         goto L22b2;
     }
     else
     {           /* L2134 */
-        if ((var0->type == FLOAT) || (var0->type == DOUBLE))
+        if ((lhs->type == FLOAT) || (lhs->type == DOUBLE))
         {
-            L2a17 (cref);
+            trandexp (node);
             goto L22b2;
 
         }
@@ -165,31 +165,31 @@ L20ed (int parm1, expnode *cref, int parm3, int parm4, int parm5)
 
     /* Check out the logic for this block ... it's pretty complicated */
     /* L2152 */
-    if ((L24e6 ( var0)) ||
-            ((L22ca (var0)) && ( ! L22ca (_crRight))) ||
-            ((is_regvar (_crRight->op)) &&
-                        ( ! is_regvar (var0->op))))  /* else L219c */
+    if ((zeroconst ( lhs)) ||
+            ((isaleaf (lhs)) && ( ! isaleaf (rhs))) ||
+            ((is_regvar (rhs->op)) &&
+                        ( ! is_regvar (lhs->op))))  /* else L219c */
     {
-        var4 = var0;        /* L2189 */
-        var0 = _crRight;
-        _crRight = var4;
-        parm1 = L249e (parm1);
+        t = lhs;        /* L2189 */
+        lhs = rhs;
+        rhs = t;
+        op = revrel (op);
     }
 
-    var4 = var0->op;        /* L219c */
+    t = lhs->op;        /* L219c */
 
-    if (is_regvar (var4))       /* else L221f */
+    if (is_regvar (t))       /* else L221f */
     {
-        tranexp (_crRight);
+        tranexp (rhs);
 
-        switch (_crRight->op)
+        switch (rhs->op)
         {
             case AMPER:           /* L21b8 */
-                loadexp (_crRight);
+                loadexp (rhs);
                 goto L21e0;
             case CTOI:    /* L21c3 */
-                gen (LOAD, DREG, NODE, _crRight);
-                _crRight->op = DREG;
+                gen (LOAD, DREG, NODE, rhs);
+                rhs->op = DREG;
                 /* fall through to next case */
             case XREG:
             case YREG:
@@ -197,68 +197,68 @@ L20ed (int parm1, expnode *cref, int parm3, int parm4, int parm5)
             case DREG:      /* L21e2 */
 L21e0:
 #ifdef COCO
-                gen (PUSH, _crRight->op);
+                gen (PUSH, rhs->op);
 #else
-                gen (PUSH, _crRight->op, 0, 0);
+                gen (PUSH, rhs->op, 0, 0);
 #endif
-                 _crRight->op = STACK;    /* go to L229b */
+                 rhs->op = STACK;    /* go to L229b */
             default:           /* L229b */
                  break;
         }
     }       /* end if (is_regvar...) */
     else
     {
-        if ((L24e6 (_crRight)) && (parm1 < ULEQ))       /* L221f */
+        if ((zeroconst (rhs)) && (op < ULEQ))       /* L221f */
         {
-            L2323 (var0);       /* go to L22b4 */
+            checkop (lhs);       /* go to L22b4 */
             /* this should probably have been goto L22b2; */
 #ifdef COCO
-            gen (CNDJMP, parm1, var2);
+            gen (CNDJMP, op, destin);
 #else
-            gen (CNDJMP, parm1, var2, 0);
+            gen (CNDJMP, op, destin, 0);
 #endif
             return;
         }
         else
         {
-            loadexp (var0);       /* L223c */
-            var4 = var0->op;
+            loadexp (lhs);       /* L223c */
+            t = lhs->op;
             
-            if ((isdleaf (_crRight)) || ((var4 == DREG) && L22ca (_crRight)))
+            if ((isdleaf (rhs)) || ((t == DREG) && isaleaf (rhs)))
             {
-                tranexp (_crRight);   /* go to L229b */
+                tranexp (rhs);   /* go to L229b */
             }
             else
             {
 #ifdef COCO
-                gen (PUSH, var4);
+                gen (PUSH, t);
 #else
-                gen (PUSH, var4, 0, 0);
+                gen (PUSH, t, 0, 0);
 #endif
-                var0->op = STACK;
-                loadexp (_crRight);
-                var4 = _crRight->op;
-                _crRight = var0;
-                parm1 = L249e (parm1);
+                lhs->op = STACK;
+                loadexp (rhs);
+                t = rhs->op;
+                rhs = lhs;
+                op = revrel (op);
             }
         }
     }       /* end else => if ! is_regvar... */
 
-    gen (COMPARE, var4, NODE, _crRight); /* L229b... */
+    gen (COMPARE, t, NODE, rhs); /* L229b... */
 L22b2:
 #ifdef COCO
-    gen (CNDJMP, parm1, var2);
+    gen (CNDJMP, op, destin);
 #else
-    gen (CNDJMP, parm1, var2, 0);
+    gen (CNDJMP, op, destin, 0);
 #endif
 }
 
 int
 #ifdef COCO
-L22ca (cref)
+isaleaf (cref)
     expnode *cref;
 #else
-L22ca (expnode *cref)
+isaleaf (expnode *cref)
 #endif
 {
     switch (cref->op)
@@ -290,31 +290,31 @@ p2_03_notused (parm1, parm2)
 
 void
 #ifdef COCO
-L2323 (cref)
-    register expnode *cref;
+checkop (node)
+    register expnode *node;
 #else
-L2323 (expnode *cref)
+checkop (expnode *node)
 #endif
 {
-    expnode *var2;
-    int var0 = 0;
+    expnode *lhs;
+    int flag = 0;
 
-    switch (cref->op)
+    switch (node->op)
     {                                       /* break = L23fe */
         case AND:        /* L2337 */
-            if ((((var2 = cref->right)->op) != CONST) ||
-                        ((unsigned int)(var2->val.num) > (unsigned int)255))
+            if ((((lhs = node->right)->op) != CONST) ||
+                        ((unsigned int)(lhs->val.num) > (unsigned int)255))
             {
-                    var0 = 1;
+                    flag = 1;
             }
 
             break;
 
         case ASSIGN:      /* L2353 */
-            if ((is_regvar ((cref->left)->op)) &&
-                                ( ! L22ca (cref->right)))
+            if ((is_regvar ((node->left)->op)) &&
+                                ( ! isaleaf (node->right)))
             {
-                var0 = 1;
+                flag = 1;
             }
 
             break;
@@ -328,7 +328,7 @@ L2323 (expnode *cref)
         case ASSAND:
         case ASSOR:
         case ASSXOR:
-            if ( ! is_regvar ((cref->left)->op))
+            if ( ! is_regvar ((node->left)->op))
             {
                 break;
             }
@@ -339,41 +339,41 @@ L2323 (expnode *cref)
         case COMPL:
         case NEG:
         case CALL:
-            var0 = 1;
+            flag = 1;
             break;
     }
 
-    D0019 = 0;
-    tranexp (cref);
+    shiftflag = 0;
+    tranexp (node);
 
-    switch (cref->op)
+    switch (node->op)
     {
         case XREG:
         case DREG:          /* L240d */
         case YREG:
         case UREG:
-            if (var0 || D0019)
+            if (flag || shiftflag)
             {
-                gen (COMPARE, cref->op, CONST, 0);
+                gen (COMPARE, node->op, CONST, 0);
             }
 
             break;
 
         case CTOI:    /* L2427 */
-            gen (LOAD, DREG, NODE, (cref = cref->left));
+            gen (LOAD, DREG, NODE, (node = node->left));
             break;
         default:           /* L2429 */
-            gen (LOAD, DREG, NODE, cref);
+            gen (LOAD, DREG, NODE, node);
             break;
     }
 }
 
 int
 #ifdef COCO
-L2466 (parm1)
+invrel (parm1)
     int parm1;
 #else
-L2466 (int parm1)
+invrel (int parm1)
 #endif
 {
     switch (parm1)
@@ -383,16 +383,16 @@ L2466 (int parm1)
         case NEQ:       /* L2477 */
             return EQ;
         default:            /* L247c */
-            return (((parm1 > GT) ? 195 : 187) - parm1);
+            return (((parm1 > GT) ? ULEQ+UGT : LEQ+GT) - parm1);
     }
 }
 
 int
 #ifdef COCO
-L249e (parm1)
+revrel (parm1)
     int parm1;
 #else
-L249e (int parm1)
+revrel (int parm1)
 #endif
 {
     switch (parm1)
@@ -412,10 +412,10 @@ L249e (int parm1)
 
 int
 #ifdef COCO
-L24e6 (cref)
+zeroconst (cref)
     register expnode *cref;
 #else
-L24e6 (expnode *cref)
+zeroconst (expnode *cref)
 #endif
 {
     return ((cref->op == CONST) && ( ! cref->val.num));
@@ -423,22 +423,22 @@ L24e6 (expnode *cref)
 
 void
 #ifdef COCO
-L2505 (cref)
+lload (cref)
     expnode *cref;
 #else
-L2505 (expnode *cref)
+lload (expnode *cref)
 #endif
 {
-    L2520 (cref);
-    L28fb (cref);
+    tranlexp (cref);
+    getadd (cref);
 }
 
 void
 #ifdef COCO
-L2520 (cref)
+tranlexp (cref)
     register expnode *cref;
 #else
-L2520 (expnode *cref)
+tranlexp (expnode *cref)
 #endif
 {
     expnode *var4;
@@ -447,7 +447,7 @@ L2520 (expnode *cref)
 
     switch (var2 = cref->op)
     {       /* break = L28f7 */
-        case 128:          /* L28f7 */
+        case FREG:          /* L28f7 */
         case XIND:          /* L28f7 */
         case YIND:          /* L28f7 */
         case UIND:          /* L28f7 */
@@ -485,7 +485,7 @@ L2520 (expnode *cref)
             gen (LONGOP, UTOL NUL2);
             goto L25bf;
         case DTOL:    /* L2586 */
-            L29fc (cref->left);
+            dload (cref->left);
 #ifdef COCO
             gen (DBLOP, DTOL, cref->left);
 #else
@@ -507,13 +507,13 @@ L25bf:
             L3203 (cref->val.num, 4);
             goto L27d4;
         case QUERY:   /* L25ea */
-            doquery (cref, L2505);
+            doquery (cref, lload);
             goto L27d4;
         case INCBEF:   /* L25f7 */
         case DECBEF:
         case COMPL:
         case NEG:
-            L2505 (cref->left);
+            lload (cref->left);
 #ifdef COCO
             gen (LONGOP, var2);
 #else
@@ -528,7 +528,7 @@ L25bf:
 #else
             gen (PUSH, DREG, 0, 0);
 #endif
-            L2505 (cref->left);
+            lload (cref->left);
 #ifdef COCO
             gen (LONGOP, var2);
             gen (LONGOP, MOVE);
@@ -596,7 +596,7 @@ L25bf:
             }
             else
             {
-                L2505 (var4);
+                lload (var4);
 #ifdef COCO
                 gen (LONGOP, STACK);
 #else
@@ -604,7 +604,7 @@ L25bf:
 #endif
             }
 
-            L2505 (cref->right);
+            lload (cref->right);
 #ifdef COCO
             gen (LONGOP, var2);
 #else
@@ -614,7 +614,7 @@ L25bf:
         case SHL:     /* L2735 */
         case SHR:
 L2733:
-            L2505 (cref->left);
+            lload (cref->left);
 #ifdef COCO
             gen (PUSH, DREG);
 #else
@@ -628,20 +628,20 @@ L2733:
 #endif
             goto L25bf;
         case ASSIGN:      /* L2769 */
-            L2505 (cref->left);
+            lload (cref->left);
 #ifdef COCO
             gen (PUSH, DREG);
 #else
             gen (PUSH, DREG, 0, 0);
 #endif
-            L2505 (cref->right);
+            lload (cref->right);
             goto L27c1;
 
             /* We'll put this here -- don't know at the moment why it was
              * put here, will investigate l8tr
              */
 L278e:
-            L2505 (var4 = cref->left);
+            lload (var4 = cref->left);
 #ifdef COCO
             gen (PUSH, DREG);
 #else
@@ -649,7 +649,7 @@ L278e:
 #endif
             cref->op = var2 - 80;
             var4->op = XIND;
-            L2520 (cref);
+            tranlexp (cref);
 L27c1:
 #ifdef COCO
             gen (LONGOP, MOVE);
@@ -673,10 +673,10 @@ L27d4:
 
 void
 #ifdef COCO
-L28fb (cref)
+getadd (cref)
     expnode *cref;
 #else
-L28fb (expnode *cref)
+getadd (expnode *cref)
 #endif
 {
     switch (cref->op)

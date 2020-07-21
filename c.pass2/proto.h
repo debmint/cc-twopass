@@ -1,78 +1,76 @@
+/* ../../../c.pass2/bool.c */
+void tranbool(expnode *node, int tlab, int flab, int n);
+void L20ed(int op, expnode *node, int tlab, int flab, int nj);
+int isaleaf(expnode *cref);
+void checkop(expnode *node);
+int invrel(int parm1);
+int revrel(int parm1);
+int zeroconst(expnode *cref);
+void lload(expnode *cref);
+void tranlexp(expnode *cref);
+void getadd(expnode *cref);
+void L294b(expnode *cref);
 /* ../../../c.pass2/codgen.c */
 void *getmem(int siz);
 void L3203(struct val_data *vdat, int siz);
 void gen(int op, int rtype, int arg, expnode *val);
 int get_regname(int parm1);
-void L39d9(int parm1, int parm2);
-void L3bc2(int parm1, int fttyp);
-void L3d90(int fttyp, int siz);
-void L3dd0(int *intarray, int siz);
-void L3e51(char *strng);
-void L3e6e(char *strng);
-void L3e8d(char *strng);
-void L3ea4(int parm1, int parm2, expnode *cref);
+void dolongs(int parm1, int parm2);
+void dofloats(int parm1, int fttyp);
+void getcon(int fttyp, int siz);
+void defcon(int *intarray, int siz);
+void mwsyscall(char *strng);
+void lcall(char *strng);
+void fcall(char *strng);
+void trouble(int parm1, int parm2, expnode *cref);
 void doref(int ch, int parm2, int parm3, int parm4);
 void addoff(int offset);
-void L40d0(int parm1, int parm2, int parm3);
+void deref(int parm1, int parm2, int parm3);
 char *br_rel_op(int vtype);
 void ot(char *opcod);
-void L43d1(char *opcod);
+void ol(char *opcod);
 void newln(void);
 void prnt_chr(int ch);
 void prnt_strng(char *strng);
 void od(int valu);
-void L4414(int valu);
+void label(int valu);
 void prt_loclbl(int valu);
 void prt_lblnam(char *lblnam);
 int modstk(int valu);
 void prt_label(char *lblnam, int isglbl);
 void lea_reg(int reg);
 void outstr(int regnam, int lblnum);
-/* ../../../c.pass2/p2_01.c */
-int main(int argc, char **argv);
-expnode *L0787(void);
-void L095c(double *dblptr);
-void openoutpth(char *fnam);
-void L0a16(expnode *cref, int parm2);
-void psh_stk(char *parm);
-void err_exit(void);
-int getword(FILE *fp);
-/* ../../../c.pass2/p2_03.c */
-void L1f13(expnode *cref, int parm2, int parm3, int parm4);
-void L20ed(int parm1, expnode *cref, int parm3, int parm4, int parm5);
-int L22ca(expnode *cref);
-void L2323(expnode *cref);
-int L2466(int parm1);
-int L249e(int parm1);
-int L24e6(expnode *cref);
-void L2505(expnode *cref);
-void L2520(expnode *cref);
-void L28fb(expnode *cref);
-void L294b(expnode *cref);
-/* ../../../c.pass2/p2_04.c */
-void L29fc(expnode *cref);
-void L2a17(expnode *cref);
-/* ../../../c.pass2/p2_07.c */
-void L4823(char *strng);
-void outofmemory(void);
-void comperr(expnode *cref, char *strng);
-void L487f(expnode *cref, char *parm2);
-void L4896(int parm1, long lng);
-long *lng2_flacc(int parm1);
-int showerr(int linpos, char *errstr, long *fpos);
-void L4a69(expnode *cref);
-void L4a8a(expnode *cref);
-void L4acd(expnode *parm1, expnode *parm2);
-int L4af7(int parm1);
-void ncpystr(char *src, char *dest, int count);
-/* ../../../c.pass2/p2_08.c */
+/* ../../../c.pass2/floats.c */
+void dload(expnode *cref);
+void trandexp(expnode *node);
+/* ../../../c.pass2/local.c */
 void prt_fdb(void);
 void prt_funcbegin(char *title, char *funcnam, int parm3, int parm4);
 void prtstkreq(void);
 void prtvsctbgn(int isdp);
 void prtendsect(void);
 void L4c61(void);
-void L4c92(int parm);
+void oc(int parm);
+/* ../../../c.pass2/misc.c */
+void p_error(char *strng);
+void outofmemory(void);
+void comperr(expnode *node, char *strng);
+void L487f(expnode *cref, char *parm2);
+void L4896(int parm1, long lng);
+long *lng2_flacc(int parm1);
+int showerr(int linpos, char *errstr, long *fpos);
+void reltree(expnode *cref);
+void release(expnode *cref);
+void nodecopy(expnode *parm1, expnode *parm2);
+int isbin(int parm1);
+void ncpystr(char *src, char *dest, int count);
+/* ../../../c.pass2/p2main.c */
+int main(int argc, char **argv);
+void L095c(double *dblptr);
+void openoutpth(char *fnam);
+void L0a16(expnode *cref, int parm2);
+void err_exit(void);
+int getword(FILE *fp);
 /* ../../../c.pass2/printf.c */
 int _printf(char *fmt, int vals);
 int _fprintf(FILE *fp, char *fmt, int vals);
@@ -89,7 +87,7 @@ void lddexp(expnode *cref);
 void ldxexp(expnode *cref);
 void loadexp(expnode *cref);
 void doload(expnode *cref);
-expnode *tranexp(expnode *cref);
+expnode *tranexp(expnode *tree);
 void tranbinop(int op, expnode *node);
 int isashift(int cmd_val);
 void dobool(expnode *cref);

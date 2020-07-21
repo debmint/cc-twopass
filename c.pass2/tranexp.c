@@ -1,7 +1,7 @@
 /* ************************************************************************ *
- * p2_02.c - part 2 for c.pass2                                             *
+ * tranexp.c - part 2 for c.pass2                                           *
  *                                                                          *
- * $Id: p2_02.c 18 2008-05-19 21:54:22Z dlb $::                                                                   *
+ * $Id: p2_02.c 18 2008-05-19 21:54:22Z dlb $::                             *
  * ************************************************************************ */
 
 #include "pass2.h"
@@ -56,11 +56,11 @@ loadexp (expnode *cref)
     switch (cref->type)
     {
         case LONG:      /* L0c3b */
-            L2505 (cref);
+            lload (cref);
             break;
         case FLOAT:     /* L0c42 */
         case DOUBLE:
-            L29fc (cref);
+            dload (cref);
             break;
         default:           /* L0c49 */
             tranexp (cref);
@@ -104,44 +104,44 @@ L0cd9:
 
 expnode *
 #ifdef COCO
-tranexp (cref)
-    register expnode *cref;
+tranexp (tree)
+    register expnode *tree;
 #else
-tranexp (expnode *cref)
+tranexp (expnode *tree)
 #endif
 {
-    int _vartype;
+    int op;
 
-    if ((_vartype = cref->op) == COMMA)       /* else L0d4d */
+    if ((op = tree->op) == COMMA)       /* else L0d4d */
     {
-        expnode *_vrRight = cref->right;
+        expnode *p = tree->right;
 
-        L4a69 (tranexp (cref->left));
-        L4acd (_vrRight, cref);
-        L4a8a (_vrRight);
-        tranexp ( cref);      /* go to L0ef7 */
+        reltree (tranexp (tree->left));
+        nodecopy (p, tree);
+        release (p);
+        tranexp ( tree);      /* go to L0ef7 */
     }
     else
     {
-        if (cref->type == LONG)
+        if (tree->type == LONG)
         {
-            L2520 (cref);       /* go to L0ef7 */
+            tranlexp (tree);       /* go to L0ef7 */
         }
         else
         {
-            if ((cref->type == FLOAT) || (cref->type == DOUBLE))
+            if ((tree->type == FLOAT) || (tree->type == DOUBLE))
             {
-                L2a17 (cref);       /* go to L0ef7 */
+                trandexp (tree);       /* go to L0ef7 */
             }
             else
             {
-                if (L4af7 (_vartype))
+                if (isbin (op))
                 {
-                    tranbinop (_vartype, cref); /* go to L0ef7 */
+                    tranbinop (op, tree); /* go to L0ef7 */
                 }
                 else
                 {               /* L0d92 */
-                    switch (_vartype)
+                    switch (op)
                     {
                         case STRING:      /* L0ef7 */
                         case NAME:
@@ -151,69 +151,69 @@ tranexp (expnode *cref)
                         case CONST:
                             break;
                         case ASSIGN:      /* L0d97 */
-                            doass (cref);
+                            doass (tree);
                             break;
                         case CTOI:    /* L0d9f */
-                            tranexp (cref->left);
+                            tranexp (tree->left);
                             break;
                         case LTOI:    /* L0da9 */
-                            L2520 (cref->left);
+                            tranlexp (tree->left);
 #ifdef COCO
-                            gen (LTOI, NODE, cref->left);
+                            gen (LTOI, NODE, tree->left);
 #else
-                            gen (LTOI, NODE, cref->left, 0);
+                            gen (LTOI, NODE, tree->left, 0);
 #endif
-                            cref->op = DREG;
+                            tree->op = DREG;
                             break;
                         case DTOI:    /* L0dc7 */
-                            L29fc (cref->left);
+                            dload (tree->left);
 #ifdef COCO
                             gen (DBLOP, DTOI);
 #else
                             gen (DBLOP, DTOI, 0, 0);
 #endif
-                            cref->op = DREG;
+                            tree->op = DREG;
                             break;
                         case STAR:   /* L0ddf */
-                            dostar (cref);
+                            dostar (tree);
                             break;
                         case NOT:    /* L0de6 */
                         case DBLAND:
                         case DBLOR:
-                            dobool (cref);
+                            dobool (tree);
                             break;
                         case COMPL:      /* L0ded */
                         case NEG:
-                            lddexp (cref->left);
+                            lddexp (tree->left);
 #ifdef COCO
-                            gen (_vartype);
+                            gen (op);
 #else
-                            gen (_vartype, 0, 0,0);
+                            gen (op, 0, 0,0);
 #endif
-                            cref->op = 112;
+                            tree->op = DREG;
                             break;
                         case QUERY:    /* L0e01 */
-                            doquery (cref, lddexp);
-                            cref->op = 112;
+                            doquery (tree, lddexp);
+                            tree->op = DREG;
                             break;
                         case INCBEF:    /* L0e16 */
                         case INCAFT:
                         case DECBEF:
                         case DECAFT:
-                            dotoggle (cref, 112);
+                            dotoggle (tree, DREG);
                             break;
                         case CALL:     /* L0e22 */
-                            docall (cref);
+                            docall (tree);
                             break;
                         default:           /* L0e2c */
-                            if (_vartype >= ASSPLUS)   /* 160 */
+                            if (op >= ASSPLUS)   /* 160 */
                             {
-                                assop ( cref, _vartype);
+                                assop ( tree, op);
                             }
                             else
                             {
-                                comperr (cref, "translation");
-                                printf ("%x\n", _vartype);
+                                comperr (tree, "translation");
+                                printf ("%x\n", op);
                             }
 
                             break;
@@ -223,7 +223,7 @@ tranexp (expnode *cref)
         }
     }
 
-    return cref;        /* L0ef7 */
+    return tree;        /* L0ef7 */
 }
 
 void
@@ -270,11 +270,10 @@ tranbinop (int op, expnode *node)
         {
             case PLUS:       /* L0f43 */
             case MINUS:        /* L0f43 */
-                if ((lhs->op == AMPER) && 
-                            (rhs->op != CONST))
+                if ((lhs->op == AMPER) &&  (rhs->op != CONST))
                 {
                     tranxexp (node);
-                    D0019 = 0;
+                    shiftflag = 0;
                     return;
                 }
 
@@ -285,13 +284,13 @@ tranbinop (int op, expnode *node)
     switch (op)
     {                   /* L120d = "break" */
         case MINUS:        /* L0f78 */
-            if ( ! L22ca (rhs) )    /* else L0faa */
+            if ( ! isaleaf (rhs) )    /* else L0faa */
             {
                 loadexp (rhs);
 #ifdef COCO
-                gen (122, rhs->op);
+                gen (PUSH, rhs->op);
 #else
-                gen (122, rhs->op, 0, 0);
+                gen (PUSH, rhs->op, 0, 0);
 #endif
                 rhs->op = 110;
                 lddexp (lhs);
@@ -308,7 +307,7 @@ tranbinop (int op, expnode *node)
         case OR:
         case XOR:        /* L0fce */
         case PLUS:
-            if ( ((L22ca (lhs)) && ! (L22ca (rhs))) || (lhs->op == CONST))
+            if ( ((isaleaf (lhs)) && ! (isaleaf (rhs))) || (lhs->op == CONST))
             {
                 expnode *__tmpref = lhs;
 
@@ -319,9 +318,9 @@ tranbinop (int op, expnode *node)
             if (is_regvar (lhs->op))      /* L0ff6 */   /* else L1021 */
             {
 #ifdef COCO
-                gen (122, lhs->op);     /* L1003 */
+                gen (PUSH, lhs->op);     /* L1003 */
 #else
-                gen (122, lhs->op, 0, 0);
+                gen (PUSH, lhs->op, 0, 0);
 #endif
                 lddexp ( rhs);
                 rhs->op = 110;        /* go to 1052 */
@@ -330,15 +329,15 @@ tranbinop (int op, expnode *node)
             {
                 lddexp (lhs);      /* L1021 */
 
-                if ( ! L22ca (rhs))
+                if ( ! isaleaf (rhs))
                 {
 #ifdef COCO
-                    gen (122, 112);
+                    gen (PUSH, DREG);
 #else
-                    gen (122, DREG, 0, 0);
+                    gen (PUSH, DREG, 0, 0);
 #endif
                     lddexp ( rhs);
-                    rhs->op = 110;        /* go to 1052 */
+                    rhs->op = STACK;        /* go to 1052 */
                 }
                 else
                 {
@@ -382,29 +381,29 @@ L108b:
                         {
                             case SHL:      /* L10a2 */
 #ifdef COCO
-                                gen (152);
+                                gen (IDOUBLE);
 #else
-                                gen (152, 0, 0, 0);
+                                gen (IDOUBLE, 0, 0, 0);
 #endif
                                 break;
                             case SHR:      /* L10a7 */
 #ifdef COCO
-                                gen (150);
+                                gen (HALVE);
 #else
-                                gen (150, 0, 0, 0);
+                                gen (HALVE, 0, 0, 0);
 #endif
                                 break;
-                            case 77:            /* L10ac */
+                            case USHR:            /* L10ac */
 #ifdef COCO
-                                gen (151);
+                                gen (UHALVE);
 #else
-                                gen (151, 0, 0, 0);
+                                gen (UHALVE, 0, 0, 0);
 #endif
                                 break;
                         }
                     }       /* end while (var0--) (@ L10c5) */ 
 
-                    D0019 = 1;      /* D0019 _may_ be IsStruct, or the like */
+                    shiftflag = 1;      /* shiftflag _may_ be IsStruct, or the like */
                     goto L1213;
                 }
                 goto L1213;
@@ -430,7 +429,7 @@ L108b:
                 goto L108b;
             }
         case DIV:      /* L112b */
-        case 76:           /* L112b */
+        case UMOD:           /* L112b */
         case MOD:    /* L112b */
 L1129:
             loadexp (lhs);
@@ -455,7 +454,7 @@ L1129:
     /* Following jump-label is not needed - vestige from the old source */
 L120d:
 #endif
-    D0019 = 0;
+    shiftflag = 0;
 L1213:
     node->op = DREG;
 }
@@ -492,8 +491,8 @@ dobool (expnode *cref)
     int l1;
     int l2;
 
-    L1f13 (cref, (l1 = ++D000b), (l2 = ++D000b), 1);
-    L4414 (l1);
+    tranbool (cref, (l1 = ++D000b), (l2 = ++D000b), 1);
+    label (l1);
     gen (LOAD, DREG, CONST, 1);
 
 #ifdef COCO
@@ -501,10 +500,10 @@ dobool (expnode *cref)
 #else
     gen (JMP, (l2 = ++D000b), 1, 0);
 #endif
-    L4414 (l2);
+    label (l2);
 
     gen (LOAD, DREG, CONST, 0);
-    L4414 (l1);
+    label (l1);
     cref->op = DREG;
 }
 
@@ -521,18 +520,18 @@ doquery (expnode *cref, void (*fnc)())
     int var2;
     int l2;
 
-    L1f13 (cref->left, (l1 = ++D000b), (l2 = ++D000b), 1);
+    tranbool (cref->left, (l1 = ++D000b), (l2 = ++D000b), 1);
     cref = cref->right;
-    L4414 (l1);
+    label (l1);
     (*fnc) (cref->left);
 #ifdef COCO
     gen (JMP, (l1 = ++D000b), 0);
 #else
     gen (JMP, (l1 = ++D000b), 0, 0);
 #endif
-    L4414 (l2);
+    label (l2);
     (*fnc) (cref->right);
-    L4414 (var2);
+    label (var2);
 }
 void
 #ifdef COCO
@@ -561,7 +560,7 @@ docall (expnode *node)
             }
             else
             {
-                L2505 (lhs);
+                lload (lhs);
 #ifdef COCO
                 gen (LONGOP, STACK);
 #else
@@ -574,7 +573,7 @@ docall (expnode *node)
         {       /* L13a8 */
             if ((lhs->type == FLOAT) || (lhs->type == DOUBLE))
             {
-                L29fc (lhs);
+                dload (lhs);
 #ifdef COCO
                 gen (DBLOP, STACK);
 #else
@@ -1134,7 +1133,7 @@ dotoggle (expnode *node, int dest)
     }
 
     node->op = dest;
-    D0019 = 0;
+    shiftflag = 0;
 }
 
 void

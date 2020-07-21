@@ -1,18 +1,15 @@
 /* ******************************************************************** *
- * p2_08.c                                                              *
- * $Id: p2_08.c 18 2008-05-19 21:54:22Z dlb $::                                                               *
+ * local.c - part 8                                                     *
+ * $Id: p2_08.c 18 2008-05-19 21:54:22Z dlb $::                         *
  * ******************************************************************** */
 
 #include "pass2.h"
 
 direct int D0023;
 direct int D0025;
+
 void
-#ifdef COCO
 prt_fdb ()
-#else
-prt_fdb (void)
-#endif
 {
     ot ("fdb ");
 }
@@ -30,8 +27,8 @@ prt_funcbegin (char *title, char *funcnam, int parm3, int parm4)
 {
     fprintf (OutPath, " ttl %.8s\n", title);
     prt_label (title, funcnam);
-    D0017 = D000f = sp = 0;
-    L43d1 ("pshs u");
+    maxpush = callflag = sp = 0;
+    ol ("pshs u");
 
     if ( ! NoStkChk)
     {
@@ -57,7 +54,7 @@ prtstkreq (void)
 {
     if ( ! NoStkChk)
     {
-        fprintf (OutPath, "_%d equ %d\n\n", D0025, (D0017 - D000f - 64));
+        fprintf (OutPath, "_%d equ %d\n\n", D0025, (maxpush - callflag - 64));
     }
 }
 
@@ -67,14 +64,14 @@ prtvsctbgn (isdp)
     int isdp;
 {
     if (isdp)
-        L43d1 ("vsect dp");
+        ol ("vsect dp");
     else
-        L43d1 ("vsect");
+        ol ("vsect");
 }
 #else
 prtvsctbgn (int isdp)
 {
-    L43d1 (isdp ? "vsect dp" : "vsect");
+    ol (isdp ? "vsect dp" : "vsect");
 }
 #endif
 
@@ -85,7 +82,7 @@ prtendsect ()
 prtendsect (void)
 #endif
 {
-    L43d1 ("endsect");
+    ol ("endsect");
 }
 
 void
@@ -101,21 +98,21 @@ L4c61 (void)
 
     while (_curch = getc (InPath))
     {
-        L4c92 (_curch);
+        oc (_curch);
     }
 
-    L4c92 ('\0');
+    oc ('\0');
 }
 
 void
 #ifdef COCO
-L4c92 (parm)
+oc (parm)
     int parm;
 #else
-L4c92 (int parm)
+oc (int parm)
 #endif
 {
-    if ( ! D02e0)
+    if ( ! scount)
     {
         fprintf (OutPath,  " fcc \"");
     }
@@ -128,7 +125,7 @@ L4c92 (int parm)
     {
         putc (parm, OutPath);
 
-        if ( D02e0++ < 75)
+        if ( scount++ < 75)
         {
             return;
         }
@@ -136,5 +133,5 @@ L4c92 (int parm)
         fprintf (OutPath, "\"\n");
     }
 
-    D02e0 = 0;
+    scount = 0;
 }

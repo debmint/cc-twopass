@@ -19,10 +19,10 @@ long _flacc;
 
 void
 #ifdef COCO
-L4823 (strng)
+p_error (strng)
     char *strng;
 #else
-L4823 (char *strng)
+p_error(char *strng)
 #endif
 {
     comperr (D0282, strng);
@@ -41,11 +41,11 @@ outofmemory (void)
 
 void
 #ifdef COCO
-comperr (cref, strng)
-    expnode *cref;
+comperr (node, strng)
+    expnode *node;
     char *strng;
 #else
-comperr (expnode *cref, char *strng)
+comperr (expnode *node, char *strng)
 #endif
 {
     /* 50 bytes static data */
@@ -53,7 +53,7 @@ comperr (expnode *cref, char *strng)
 
     strcpy (buf, "compiler error - ");
     strcat (buf, strng);
-    L487f (cref, buf);
+    L487f (node, buf);
 }
 
 void
@@ -186,26 +186,26 @@ L4a30:
 
 void
 #ifdef COCO
-L4a69 (cref)
+reltree (cref)
     register expnode *cref;
 #else
-L4a69 (expnode *cref)
+reltree (expnode *cref)
 #endif
 {
     if (cref)
     {
-        L4a69 (cref->left);
-        L4a69 (cref->right);
-        L4a8a (cref);
+        reltree (cref->left);
+        reltree (cref->right);
+        release (cref);
     }
 }
 
 void
 #ifdef COCO
-L4a8a (cref)
+release (cref)
     register expnode *cref;
 #else
-L4a8a (expnode *cref)
+release (expnode *cref)
 #endif
 {
     if (cref)
@@ -229,11 +229,11 @@ L4a8a (expnode *cref)
 
 void
 #ifdef COCO
-L4acd (parm1, parm2)
+nodecopy (parm1, parm2)
     expnode *parm1;
     expnode *parm2;
 #else
-L4acd (expnode *parm1, expnode *parm2)
+nodecopy (expnode *parm1, expnode *parm2)
 #endif
 {
     ncpystr (parm1, parm2, 22);
@@ -250,10 +250,10 @@ p051_notused (parm1, parm2)
 
 int
 #ifdef COCO
-L4af7 (parm1)
+isbin (parm1)
     register int parm1;
 #else
-L4af7 (int parm1)
+isbin (int parm1)
 #endif
 {
     return ((parm1 >= 76) && (parm1 <= 99));   /* between 'L' and 'c' */

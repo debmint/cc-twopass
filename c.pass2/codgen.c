@@ -237,13 +237,13 @@ gen (int op, int rtype, int arg, expnode *val)
 
     if (op == LONGOP)
     {
-        L39d9 (rtype, arg);
+        dolongs (rtype, arg);
         return;
     }
 
     if (op == DBLOP)
     {
-        L3bc2 (rtype, arg);
+        dofloats (rtype, arg);
         return;
     }
 
@@ -252,58 +252,58 @@ gen (int op, int rtype, int arg, expnode *val)
         case PUSH:          /* L32cd */
             fprintf (OutPath, " pshs %c\n", get_regname (rtype));
             
-            if ((sp -= INTSIZ) < D0017)
+            if ((sp -= INTSIZ) < maxpush)
             {
-                D0017 = sp;
+                maxpush = sp;
             }
             return;
         case JMPEQ:          /* L32fa */
-            gen (COMPARE, XREG, CONST, arg);    /* recurse into self */
+            gen (COMPARE, XREG, CONST, arg);
             arg = rtype;
             rtype = EQ;
             /* fall through to next */
         case CNDJMP:          /* L331d */
             ot ("lb");
             prnt_strng (br_rel_op (rtype));  /* jumping to L3400 */
-            L4414 (arg);          /* jumping to L3785 */
+            label (arg);          /* jumping to L3785 */
             return;
         case RETURN:           /* L3334 */
-            L43d1 ("puls u,pc\n");  /* jumping to L34a1 */
+            ol ("puls u,pc\n");  /* jumping to L34a1 */
             return;
         case AND:
         case OR:       /* L333b */
         case XOR:
-            L3ea4 (op, arg, val);
+            trouble (op, arg, val);
             return;
         case TIMES:       /* L334f */
-            L3e51 ("ccmult");
+            mwsyscall ("ccmult");
             return;
         case UDIV:           /* L3355 */
-            L3e51 ("ccudiv");
+            mwsyscall ("ccudiv");
             return;
         case DIV:      /* L335b */
-            L3e51 ("ccdiv");
+            mwsyscall ("ccdiv");
             return;
         case SHL:     /* L3361 */
-            L3e51 ("ccasl");
+            mwsyscall ("ccasl");
             return;
         case SHR:     /* L3367 */
-            L3e51 ("ccasr");
+            mwsyscall ("ccasr");
             return;
         case USHR:           /* L336d */
-            L3e51 ("cclsr");
+            mwsyscall ("cclsr");
             return;
         case UMOD:           /* L3373 */
-            L3e51 ("ccumod");
+            mwsyscall ("ccumod");
             return;
         case MOD:    /* L3379 */
-            L3e51 ("ccmod");
+            mwsyscall ("ccmod");
             return;
         case NEG:      /* L3385 */
-            L43d1 ("nega\n negb\n sbca #0");
+            ol ("nega\n negb\n sbca #0");
             return;
         case COMPL:      /* L338c */
-            L43d1 ("coma\n comb");
+            ol ("coma\n comb");
             return;
         case GOTO:           /* L3393 */
             ot ("leax ");
@@ -311,48 +311,48 @@ gen (int op, int rtype, int arg, expnode *val)
             prnt_strng (spind);
             newln ();
         case JMP:          /* L33b9 */
-            ot (D0053);
-            L4414 (rtype);
+            ot (lbra);
+            label (rtype);
             return;
         case LABEL:            /* L33c8 */
-            ot (D0053);
-            L4414 (arg);
-            L4414 (rtype);
+            ot (lbra);
+            label (arg);
+            label (rtype);
             ot ("leas ");
             od (sp);
             prnt_strng (",x\n");
-            L4414 (arg);
+            label (arg);
             return;
         case CALL:     /* L3410 */
-            D000f = 4;
+            callflag = 4;
 
             if ( (((expnode *)arg)->op == NAME) &&
                    ((ptr = ((expnode *)arg)->val.sp)) )   /* else L3445 */
             {
-                ot (D0051);
+                ot (lbsr);
                 prt_label (&ptr->dimptr, 0);
                 return;
             }
 
             ot ("jsr ");
-            L40d0 (rtype, arg, 0);
+            deref (rtype, arg, 0);
             newln ();
             return;
         case CTOI:    /* L3466 */
-            L43d1 ("sex");  /* jumping to L34a1 */
+            ol ("sex");  /* jumping to L34a1 */
             return;
         case LTOI:    /* L346c */
             ot ("ld");
             doref ('d', rtype, arg, INTSIZ);
             return;
         case IDOUBLE:          /* L3491 */
-            L43d1 ("aslb\n rola");  /* jumping to L34a1 */
+            ol ("aslb\n rola");  /* jumping to L34a1 */
             return;
         case HALVE:          /* L3497 */
-            L43d1 ("asra\n rorb");  /* jumping to L34a1 */
+            ol ("asra\n rorb");  /* jumping to L34a1 */
             return;
         case UHALVE:          /* L349d */
-            L43d1 ("lsra\n rorb");
+            ol ("lsra\n rorb");
             return;
         case YREG:    /* L34a6 */
             ot ("ldy ");
@@ -399,14 +399,14 @@ dooff:
             switch (op)
             {
                 case LOAD:          /* L364d */
-                    L43d1 ("sex");
+                    ol ("sex");
                     break;
                 case RSUB:           /* L3653 */
                 case PLUS:       /* L3653 */
-                    L43d1 ("adca #0");
+                    ol ("adca #0");
                     break;
                 case MINUS:        /* L3659 */
-                    L43d1 ("sbca #0");
+                    ol ("sbca #0");
                     break;
             }
 
@@ -471,7 +471,7 @@ dooff:
             /* L3765 */
             if ((rtype == DREG) && (arg == CONST) && (val == 0))
             {
-                L43d1 ("clra\n clrb");
+                ol ("clra\n clrb");
             }
             else
             {
@@ -571,11 +571,11 @@ L390d:
                     newln ();
                     return;
                 default:            /* L391e */
-                    L4823 ("LEA arg");
+                    p_error ("LEA arg");
                     return;
             }
         default:           /* L3938 */
-            L4823 (D0057);
+            p_error (unkopr);
             return;
     }
 }
@@ -594,11 +594,11 @@ get_regname (int parm1)
             return 'd';
         case XREG:          /* L3992 */
             return 'x';
-        case YREG:    /* L3997 */
+        case YREG:          /* L3997 */
             return 'y';
-        case UREG:      /* L399c */
+        case UREG:          /* L399c */
             return 'u';
-        default:           /* L39a1 */
+        default:            /* L39a1 */
             return ' ';
     }
 }
@@ -616,69 +616,69 @@ transfer (int parm1, int parm2)
 }
 
 /* ******************************************************************** *
- * L39d9 () - Seems to handle longs                                     *
+ * dolongs () - Seems to handle longs                                     *
  * ******************************************************************** */
 
 void
 #ifdef COCO
-L39d9 (parm1, parm2)
+dolongs (parm1, parm2)
     int parm1;
     int parm2;
 #else
-L39d9 (int parm1, int parm2)
+dolongs (int parm1, int parm2)
 #endif
 {
     switch (parm1)
     {
-        case 110:          /* L39e0 */
-            gen (117, 112, 147, CHAR);
+        case STACK:          /* L39e0 */
+            gen (LOAD, DREG, XIND, CHAR);
 #ifdef COCO
-            gen (122, 112);
-            gen (117, 112, 147, 0);
-            gen (122, 112);
+            gen (PUSH, DREG);
+            gen (LOAD, DREG, XIND, 0);
+            gen (PUSH, DREG);
 #else
-            gen (122, 112, 0, 0);
-            gen (117, 112, 147, 0);
-            gen (122, 112, 0, 0);
+            gen (PUSH, DREG, 0, 0);
+            gen (LOAD, DREG, XIND, 0);
+            gen (PUSH, DREG, 0, 0);
 #endif
             break;
-        case 139:          /* L3a30 */
-            L43d1 ("lda 0,x\n ora 1,x\n ora 2,x\n ora 3,x");
+        case TEST:          /* L3a30 */
+            ol ("lda 0,x\n ora 1,x\n ora 2,x\n ora 3,x");
             break;
-        case 137:          /* L3a3c */
-            L3e6e ("_lmove");
+        case MOVE:          /* L3a3c */
+            lcall ("_lmove");
             sp -= INTSIZ; /* WARNING sp _may_ be an int * */
             break;
         case PLUS:       /* L3a42 */
-            L3e6e ("_ladd");
+            lcall ("_ladd");
             break;
         case MINUS:        /* L3a48 */
-            L3e6e ("_lsub");
+            lcall ("_lsub");
             break;
         case TIMES:       /* L3a4e */
-            L3e6e ("_lmul");
+            lcall ("_lmul");
             break;
         case DIV:      /* L3a54 */
-            L3e6e ("_ldiv");
+            lcall ("_ldiv");
             break;
         case MOD:    /* L3a5a */
-            L3e6e ("_lmod");
+            lcall ("_lmod");
             break;
         case AND:        /* L3a60 */
-            L3e6e ("_land");
+            lcall ("_land");
             break;
         case OR:       /* L3a66 */
-            L3e6e ("_lor");
+            lcall ("_lor");
             break;
         case XOR:      /* L3a6c */
-            L3e6e ("_lxor");
+            lcall ("_lxor");
             break;
         case SHL:     /* L3a72 */
-            L3e6e ("_lshl");
+            lcall ("_lshl");
             sp -= INTSIZ; /* WARNING sp _may_ be an int * */
             break;
         case SHR:     /* L3a78 */
-            L3e6e ("_lshr");
+            lcall ("_lshr");
             sp -= INTSIZ; /* WARNING sp _may_ be an int * */
             break;
         case EQ:
@@ -687,46 +687,46 @@ L39d9 (int parm1, int parm2)
         case LEQ:      /* L3a8b */
         case GT:
         case LT:
-            L3e6e ("_lcmpr");
+            lcall ("_lcmpr");
             break;
         case NEG:      /* L3a97 */
-            L3e6e ("_lneg");
+            lcall ("_lneg");
             sp -= LONGSIZ;
-            /*L3d90 (parm2, 2);*/
+            /*getcon (parm2, 2);*/
             break;
         case COMPL:      /* L3a9d */
-            L3e6e ("_lcompl");
+            lcall ("_lcompl");
             sp -= LONGSIZ;
-            /*L3d90 (parm2, 2);*/
+            /*getcon (parm2, 2);*/
             break;
         case ITOL:      /* L3aa3 */
-            L3e6e ("_litol");
+            lcall ("_litol");
             sp -= LONGSIZ;
-            /*L3d90 (parm2, 2);*/
+            /*getcon (parm2, 2);*/
             break;
         case UTOL:      /* L3aa9 */
-            L3e6e ("_lutol");
+            lcall ("_lutol");
             sp -= LONGSIZ;
-            /*L3d90 (parm2, 2);*/
+            /*getcon (parm2, 2);*/
             break;
         case INCBEF:    /* L3aaf */
         case INCAFT:    /* L3aaf */
-            L3e6e ("_linc");
+            lcall ("_linc");
             sp -= LONGSIZ;
-            /*L3d90 (parm2, 2);*/
+            /*getcon (parm2, 2);*/
             break;
         case DECBEF:   /* L3ab5 */
         case DECAFT:  /* L3ab5 */
-            L3e6e ("_ldec");
-            /*L3d90 (parm2, 2);*/
+            lcall ("_ldec");
+            /*getcon (parm2, 2);*/
             sp -= LONGSIZ;
             break;
         case LCONST:       /* L3ac8 */
-            L3d90 (parm2, 2);
+            getcon (parm2, 2);
             break;
         default:           /* L3ad4 */
-            L4823 ("codgen - longs");
-            prnt_strng (D0057);
+            p_error ("codgen - longs");
+            prnt_strng (unkopr);
             od (parm1);
             newln ();
             break;
@@ -734,25 +734,25 @@ L39d9 (int parm1, int parm2)
 }
 
 /* ******************************************************************** *
- * L3bc2 () - Seems to handle floats/doubles                            *
+ * dofloats () - Seems to handle floats/doubles                            *
  * ******************************************************************** */
 
 void
 #ifdef COCO
-L3bc2 (parm1, fttyp)
+dofloats (parm1, fttyp)
     int parm1;
     register int fttyp;
 #else
-L3bc2 (int parm1, int fttyp)
+dofloats (int parm1, int fttyp)
 #endif
 {
     switch (parm1)
     {
         case FCONST:     /* L3bcb */
-            L3d90 (fttyp, DBLSIZ/2);
+            getcon (fttyp, DBLSIZ/2);
             break;
         case STACK:          /* L3bd9 */
-            L3e8d ("_dstack");
+            fcall ("_dstack");
             sp -= DBLSIZ;
             break;
         case TEST:          /* L3bec */
@@ -760,23 +760,23 @@ L3bc2 (int parm1, int fttyp)
                        ((fttyp == FLOAT) ? '3' : '7'));
             break;
         case MOVE:          /* L3c0d */
-            L3e8d ((fttyp == FLOAT) ? "_fmove" : "_dmove");
+            fcall ((fttyp == FLOAT) ? "_fmove" : "_dmove");
             sp += INTSIZ;    /* jump to L3e65 */
             break;
         case PLUS:       /* L3c27 */
-            L3e8d ("_dadd");
+            fcall ("_dadd");
             sp += DBLSIZ;
             break;
         case MINUS:        /* L3c2d */
-            L3e8d ("_dsub");
+            fcall ("_dsub");
             sp += DBLSIZ;
             break;
         case TIMES:       /* L3c33 */
-            L3e8d ("_dmul");
+            fcall ("_dmul");
             sp += DBLSIZ;
             break;
         case DIV:      /* L3c39 */
-            L3e8d ("_ddiv");
+            fcall ("_ddiv");
             sp += DBLSIZ;
             break;
         case EQ:       /* L3c3f */
@@ -785,44 +785,44 @@ L3bc2 (int parm1, int fttyp)
         case LEQ:      /* L3c3f */
         case GT:         /* L3c3f */
         case LT:         /* L3c3f */
-            L3e8d ("_dcmpr");
+            fcall ("_dcmpr");
             sp += DBLSIZ;
             break;
         case NEG:      /* L3c52 */
-            L3e8d ("_dneg");
+            fcall ("_dneg");
             break;
         case INCBEF:   /* L3c58 */
         case INCAFT:  /* L3c58 */
-            L3e8d ((fttyp == FLOAT) ? "_finc" : "_dinc");
+            fcall ((fttyp == FLOAT) ? "_finc" : "_dinc");
             break;
         case DECBEF:   /* L3c6a */
         case DECAFT:  /* L3c6a */
-            L3e8d ((fttyp == FLOAT) ? "_fdec" : "_ddec");
+            fcall ((fttyp == FLOAT) ? "_fdec" : "_ddec");
             break;
         case DTOF:    /* L3c80 */
-            L3e8d ("_dtof");
+            fcall ("_dtof");
             break;
         case FTOD:    /* L3c86 */
-            L3e8d ("_ftod");
+            fcall ("_ftod");
             break;
         case LTOD:      /* L3c8c */
-            L3e8d ("_ltod");
+            fcall ("_ltod");
             break;
         case ITOD:      /* L3c92 */
-            L3e8d ("_itod");
+            fcall ("_itod");
             break;
         case UTOD:      /* L3c98 */
-            L3e8d ("_utod");
+            fcall ("_utod");
             break;
         case DTOL:    /* L3c9e */
-            L3e8d ("_dtol");
+            fcall ("_dtol");
             break;
         case DTOI:    /* L3ca4 */
-            L3e8d ("_dtoi");
+            fcall ("_dtoi");
             break;
         default:           /* L3cb0 */
-            L4823 ("codgen - floats");
-            prnt_strng (D0057);
+            p_error ("codgen - floats");
+            prnt_strng (unkopr);
             od (parm1);
             newln ();
             break;
@@ -831,29 +831,29 @@ L3bc2 (int parm1, int fttyp)
 
 void
 #ifdef COCO
-L3d90 (fttyp, siz)
+getcon (fttyp, siz)
     int fttyp;
     int siz;
 #else
-L3d90 (int fttyp, int siz)
+getcon (int fttyp, int siz)
 #endif
 {
     int _stkcount;
 
     ot ("bsr ");
-    L4414 (_stkcount = ++D000b);
-    L3dd0 (fttyp, siz);
+    label (_stkcount = ++D000b);
+    defcon (fttyp, siz);
     prt_loclbl (_stkcount);
-    L43d1 ("puls x");
+    ol ("puls x");
 }
 
 void
 #ifdef COCO
-L3dd0 (intarray, siz)
+defcon (intarray, siz)
     register int *intarray;
     int siz;
 #else
-L3dd0 (int *intarray, int siz)
+defcon (int *intarray, int siz)
 #endif
 {
     int var0;
@@ -900,50 +900,50 @@ L3dd0 (int *intarray, int siz)
 
 void
 #ifdef COCO
-L3e51 (strng)
+mwsyscall (strng)
     char *strng;
 #else
-L3e51 (char *strng)
+mwsyscall (char *strng)
 #endif
 {
-    ot (D0051);
-    L43d1 (strng);
+    ot (lbsr);
+    ol (strng);
     sp += INTSIZ;
 }
 
 void
 #ifdef COCO
-L3e6e (strng)
+lcall (strng)
     char *strng;
 #else
-L3e6e (char *strng)
+lcall (char *strng)
 #endif
 {
-    ot (D0051);
-    L43d1 (strng);
+    ot (lbsr);
+    ol (strng);
     sp += LONGSIZ;
 }
 
 void
 #ifdef COCO
-L3e8d (strng)
+fcall (strng)
     char *strng;
 #else
-L3e8d (char *strng)
+fcall (char *strng)
 #endif
 {
-    ot (D0051);
-    L43d1 (strng);
+    ot (lbsr);
+    ol (strng);
 }
 
 void
 #ifdef COCO
-L3ea4 (parm1, parm2, cref)
+trouble (parm1, parm2, cref)
     register int parm1;
     int parm2;
     expnode *cref;
 #else
-L3ea4 (int parm1, int parm2, expnode *cref)
+trouble (int parm1, int parm2, expnode *cref)
        /*   +10        +12            +14 */
 #endif
 {
@@ -983,7 +983,7 @@ L3ea4 (int parm1, int parm2, expnode *cref)
             {
                 if (parm1 == AND)
                 {
-                    L43d1 (D0055);
+                    ol (D0055);
                 }
 
                 ot (strng);
@@ -1004,7 +1004,7 @@ L3ea4 (int parm1, int parm2, expnode *cref)
                 case 0:     /* L3f79 */
                     if (parm1 == AND)
                     {
-                        L43d1 (D0055);
+                        ol (D0055);
                     }
 
                     break;
@@ -1016,7 +1016,7 @@ L3ea4 (int parm1, int parm2, expnode *cref)
 
                     if (parm1 == XOR)
                     {
-                        L43d1 ("coma");
+                        ol ("coma");
                         break;
                     }
 
@@ -1032,7 +1032,7 @@ L3ea4 (int parm1, int parm2, expnode *cref)
                 case 0:     /* L3fd6 */
                     if (parm1 == AND)
                     {
-                        L43d1 ("clrb");
+                        ol ("clrb");
                     }
 
                     break;
@@ -1044,7 +1044,7 @@ L3ea4 (int parm1, int parm2, expnode *cref)
 
                     if (parm1 == XOR)
                     {
-                        L43d1 ("comb");
+                        ol ("comb");
                         break;
                     }
 
@@ -1060,7 +1060,7 @@ L3ea4 (int parm1, int parm2, expnode *cref)
             sp += INTSIZ;
             break;
         default:           /* L404f */
-            L4823 ("compiler trouble");
+            p_error ("compiler trouble");
             break;
     }
 }
@@ -1078,7 +1078,7 @@ doref (int ch, int parm2, int parm3, int parm4)
 {
     prnt_chr (ch);
     prnt_chr (' ');
-    L40d0 (parm2, parm3, parm4);
+    deref (parm2, parm3, parm4);
     newln ();
 }
 
@@ -1105,12 +1105,12 @@ addoff (int offset)
 
 void
 #ifdef COCO
-L40d0 (parm1, parm2, parm3)
+deref (parm1, parm2, parm3)
     int parm1;
     int parm2;
     int parm3;
 #else
-L40d0 (int parm1, int parm2, int parm3)
+deref (int parm1, int parm2, int parm3)
 #endif
 {
     int var4;
@@ -1132,11 +1132,11 @@ L40d0 (int parm1, int parm2, int parm3)
             if (cref->op == AMPER)
             {
                 prnt_chr ('#');
-                L40d0 (NODE, cref->left, parm3);
+                deref (NODE, cref->left, parm3);
             }
             else
             {
-                L40d0 (cref->op, cref->val.num, parm3 + cref->modifier);
+                deref (cref->op, cref->val.num, parm3 + cref->modifier);
             }
 
             return;
@@ -1204,7 +1204,7 @@ L41d2:
 
                         break;
                     default:           /* L422b */
-                        L4823 ("storage error");
+                        p_error ("storage error");
                         break;
                 }
             }       /* end initial "if" */
@@ -1242,7 +1242,7 @@ L41d2:
             sp += INTSIZ;
             break;
         default:           /* L42d5 */
-            L4823 ("dereference");
+            p_error ("dereference");
             break;
     }
 
@@ -1263,7 +1263,7 @@ br_rel_op (int vtype)
     switch (vtype)
     {
         default:           /* L4338 */
-            L4823 ("rel op");
+            p_error ("rel op");
         case EQ:       /* L4343 */
             return "eq ";
         case NEQ:      /* L4349 */
@@ -1300,15 +1300,15 @@ ot(char *opcod)
 }
 
 /* ******************************************************************** *
- * L43d1 () - 
+ * ol () - 
  * ******************************************************************** */
 
 void
 #ifdef COCO
-L43d1 (opcod)
+ol (opcod)
     char *opcod;
 #else
-L43d1 (char *opcod)
+ol (char *opcod)
 #endif
 {
     ot (opcod);
@@ -1370,10 +1370,10 @@ od (int valu)
 
 void
 #ifdef COCO
-L4414 (valu)
+label (valu)
     int valu;
 #else
-L4414 (int valu)
+label (int valu)
 #endif
 {
     prt_loclbl (valu);

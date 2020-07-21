@@ -8,31 +8,31 @@
 
 void
 #ifdef COCO
-L29fc (cref)
+dload (cref)
     expnode *cref;
 #else
-L29fc (expnode *cref)
+dload (expnode *cref)
 #endif
 {
-    L2a17 (cref);
-    L28fb (cref);
+    trandexp (cref);
+    getadd (cref);
 }
 
 void
 #ifdef COCO
-L2a17 (cref)
-    register expnode *cref;
+trandexp (node)
+    register expnode *node;
 #else
-L2a17 (expnode *cref)
+trandexp (expnode *node)
 #endif
 {
-    int var6;
+    int op;
     expnode *var4;
-    int var2;
+    int type;
     int var0;
 
-    var2 = cref->type;
-    switch (var6 = cref->op)
+    type = node->type;
+    switch (op = node->op)
     {
         case FREG:          /* L2d34 */
         case XIND:          /* L2d34 */
@@ -41,48 +41,48 @@ L2a17 (expnode *cref)
         case NAME:     /* L2d34 */
             break;
         case STAR:   /* L2a30 */
-            L2520 (cref);
+            tranlexp (node);
             break;
         case UTOD:      /* L2a3a */
         case ITOD:      /* L2a3a */
-            lddexp (cref->left);
+            lddexp (node->left);
 L2a45:
 #ifdef COCO
-            gen (DBLOP, var6);
+            gen (DBLOP, op);
 #else
-            gen (DBLOP, var6,0 ,0);
+            gen (DBLOP, op,0 ,0);
 #endif
 L2a57:
-            cref->op = FREG;
+            node->op = FREG;
             break;
         case LTOD:      /* L2a61 */
-            L2505 (cref->left);
+            lload (node->left);
             goto L2a45;
         case DTOF:    /* L2a6a */
         case FTOD:    /* L2a6a */
-            L29fc (cref->left);
+            dload (node->left);
             goto L2a45;
         case FCONST:     /* L2a77 */
 #ifdef COCO
-            gen (DBLOP, FCONST, cref->val.num);
+            gen (DBLOP, FCONST, node->val.num);
 #else
-            gen (DBLOP, FCONST, cref->val.num, 0);
+            gen (DBLOP, FCONST, node->val.num, 0);
 #endif
-            cref->op = XIND;
-            L3203 (cref->val.num, DBLSIZ);
-            cref->val.num = 0;
+            node->op = XIND;
+            L3203 (node->val.num, DBLSIZ);
+            node->val.num = 0;
             break;
         case QUERY:   /* L2aa0 */
-            doquery (cref, L29fc);
+            doquery (node, dload);
             goto L2c34;
         case INCBEF:   /* L2aaf */
         case DECBEF:
         case NEG:
-            L29fc (cref->left);
+            dload (node->left);
 #ifdef COCO
-            gen (DBLOP, var6, var2);
+            gen (DBLOP, op, type);
 #else
-            gen (DBLOP, var6, var2, 0);
+            gen (DBLOP, op, type, 0);
 #endif
             goto L2c34;
         case INCAFT:  /* L2acf */
@@ -94,21 +94,20 @@ L2a57:
             gen (LOADIM, XREG, FREG, 0);
             gen (PUSH, XREG, 0, 0);
 #endif
-            L29fc (cref->left);
+            dload (node->left);
 #ifdef COCO
-            gen (DBLOP, var6, var2);
-            gen (DBLOP, MOVE, var2);
-            gen (DBLOP, (var6 == INCAFT ? DECAFT : INCAFT),
-                    var2);
+            gen (DBLOP, op, type);
+            gen (DBLOP, MOVE, type);
+            gen (DBLOP, (op == INCAFT ? DECAFT : INCAFT),
+                    type);
 #else
-            gen (DBLOP, var6, var2, 0);
-            gen (DBLOP, MOVE, var2, 0);
-            gen (DBLOP, (var6 == INCAFT ? DECAFT : INCAFT),
-                     var2, 0);
+            gen (DBLOP, op, type, 0);
+            gen (DBLOP, MOVE, type, 0);
+            gen (DBLOP, (op == INCAFT ? DECAFT : INCAFT), type, 0);
 #endif
              goto L2a57;
         case CALL:     /* L2b42 */
-            docall (cref);
+            docall (node);
             goto L2a57;
         case EQ:
         case NEQ:
@@ -120,35 +119,35 @@ L2a57:
         case MINUS:
         case TIMES:
         case DIV:
-            L29fc (cref->left);
+            dload (node->left);
 #ifdef COCO
             gen (DBLOP, STACK);
 #else
             gen (DBLOP, STACK, 0, 0);
 #endif
-            L29fc (cref->right);
+            dload (node->right);
 #ifdef COCO
-            gen (DBLOP, var6);
+            gen (DBLOP, op);
 #else
-            gen (DBLOP, var6, 0, 0);
+            gen (DBLOP, op, 0, 0);
 #endif
             goto L2a57;
         case ASSIGN:      /* L2b7f */
-            L29fc (cref->left);
+            dload (node->left);
 #ifdef COCO
             gen (PUSH, XREG);
 #else
             gen (PUSH, XREG, 0, 0);
 #endif
-            L29fc (cref->right);
+            dload (node->right);
             goto L2c1d;
 
 L2ba5:
-            var4 = cref->left;
+            var4 = node->left;
              
-            if (var2 == FLOAT)  /* else L2bd7 */
+            if (type == FLOAT)  /* else L2bd7 */
             {
-                L29fc (var4->left);
+                dload (var4->left);
 #ifdef COCO
                 gen (PUSH, XREG);
                 gen (DBLOP, FTOD);
@@ -159,7 +158,7 @@ L2ba5:
             }
             else
             {
-                L29fc (var4);
+                dload (var4);
 #ifdef COCO
                 gen (PUSH, XREG);
 #else
@@ -167,11 +166,11 @@ L2ba5:
 #endif
             }
 
-            cref->op = var6 - 80;
+            node->op = op - 80;
             var4->op = XIND;
-            L2a17 (cref);
+            trandexp (node);
 
-            if (var2 == FLOAT)
+            if (type == FLOAT)
             {
 #ifdef COCO
                 gen (DBLOP, DTOF);
@@ -181,22 +180,22 @@ L2ba5:
             }
 L2c1d:
 #ifdef COCO
-            gen (DBLOP, MOVE, var2);
+            gen (DBLOP, MOVE, type);
 #else
-            gen (DBLOP, MOVE, var2, 0);
+            gen (DBLOP, MOVE, type, 0);
 #endif
 L2c34:
-            cref->op = XIND;
-            cref->val.num = 0;
+            node->op = XIND;
+            node->val.num = 0;
             break;
 
         default:           /* L2c42 */
-            if (var6 >= ASSPLUS)
+            if (op >= ASSPLUS)
             {
                 goto L2ba5;
             }
 
-            comperr (cref, "floats");
+            comperr (node, "floats");
     }
 }
 
